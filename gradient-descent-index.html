@@ -1,0 +1,1406 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>
+<title>Gradient Descent</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: graph-paper study notebook; sticky arcade top bar; one column of chunky "arcade" cards that stacks on phones. */
+:root{
+  --paper:#EDF1F6; --grid:#DDE4EE; --card:#FFFFFF; --card2:#F5F8FC; --ink:#18233F; --muted:#56637E; --line:#C9D3E1;
+  --hi:#FFE04A; --hi-ink:#332800; --coral:#E8503F; --mint:#16996C; --sky:#2F6FD6; --trap:#9B6BE6; --gold:#E7A919;
+  --ok-bg:#E2F6EE; --bad-bg:#FDE8E5;
+  --f-display:'Bungee','Arial Black',Impact,system-ui,sans-serif;
+  --f-body:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0F1628; --grid:#18213B; --card:#18213A; --card2:#1E2845; --ink:#E8EDF8; --muted:#9AA7C2; --line:#2D3A5E;
+  --hi:#FFD83A; --hi-ink:#2A2100; --coral:#FF7867; --mint:#3DD6A0; --sky:#76A7F7; --trap:#C3A2FF; --gold:#FFC53D;
+  --ok-bg:#123A2E; --bad-bg:#3E1D1F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0F1628; --grid:#18213B; --card:#18213A; --card2:#1E2845; --ink:#E8EDF8; --muted:#9AA7C2; --line:#2D3A5E;
+  --hi:#FFD83A; --hi-ink:#2A2100; --coral:#FF7867; --mint:#3DD6A0; --sky:#76A7F7; --trap:#C3A2FF; --gold:#FFC53D;
+  --ok-bg:#123A2E; --bad-bg:#3E1D1F; color-scheme:dark}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{min-height:100%}
+body{background-color:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:26px 26px;}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--card)}
+h1,h2,h3{text-wrap:balance;margin:0}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
+.mono{font-family:var(--f-mono)}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--card);border-bottom:2px solid var(--ink)}
+.top .wrap{display:flex;align-items:center;gap:12px;padding-block:10px;flex-wrap:wrap}
+.logo{font-family:var(--f-display);font-size:19px;letter-spacing:.5px;background:none;border:0;cursor:pointer;padding:0;display:flex;align-items:center;gap:8px}
+.logo small{font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:0}
+.nav{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+.nav button{background:transparent;border:2px solid transparent;border-radius:10px;padding:5px 10px;cursor:pointer;font-weight:700;font-size:14px}
+.nav button:hover{border-color:var(--line)}
+.nav button[aria-current="true"]{border-color:var(--ink);background:var(--card2)}
+.tok{font-family:var(--f-mono);font-weight:600;background:var(--hi);color:var(--hi-ink);border:2px solid var(--ink);border-radius:999px;padding:3px 12px 3px 6px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.tok i{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--ink);color:var(--hi);font-style:normal;font-size:11px}
+.tok.bump{animation:bump .45s}
+@keyframes bump{40%{transform:scale(1.18)}}
+
+main{padding-block:22px 60px}
+section[data-screen]{display:grid;gap:18px}
+
+.card{background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:18px;box-shadow:0 4px 0 var(--ink)}
+.soft{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:16px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:2px solid var(--ink);border-radius:12px;padding:9px 16px;font-weight:700;cursor:pointer;background:var(--card);box-shadow:0 3px 0 var(--ink);transition:transform .08s,box-shadow .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
+.btn.pri{background:var(--hi);color:var(--hi-ink)}
+.btn.ghost{box-shadow:none;border-color:var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn.sm{padding:5px 10px;font-size:14px;border-radius:10px}
+.chip{font-family:var(--f-mono);font-size:12px;font-weight:600;border:1.5px solid var(--line);border-radius:999px;padding:2px 9px;background:var(--card2);white-space:nowrap}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.muted{color:var(--muted)}
+
+/* home */
+.hero{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:18px;align-items:stretch}
+.goatcard{display:grid;gap:10px;justify-items:center;text-align:center}
+.goatcard svg{width:190px;height:auto}
+.goat-bob{animation:bob 3.2s ease-in-out infinite;transform-origin:50% 100%}
+.goat-hop{animation:hop .6s}
+@keyframes bob{50%{transform:translateY(-4px)}}
+@keyframes hop{30%{transform:translateY(-26px) rotate(-4deg)}60%{transform:translateY(0)}}
+.bubble{background:var(--card2);border:2px solid var(--line);border-radius:14px;padding:8px 12px;font-size:15px;max-width:260px;min-height:44px}
+.title-big{font-family:var(--f-display);font-size:clamp(30px,6vw,54px);line-height:1;letter-spacing:.5px}
+.title-big span{background:var(--hi);color:var(--hi-ink);padding:0 .15em;border-radius:6px}
+.intro{display:grid;gap:12px;align-content:start}
+.intro p{margin:0;max-width:62ch}
+.units{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.unit{text-align:left;cursor:pointer;display:grid;gap:10px;align-content:start;background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:16px;box-shadow:0 4px 0 var(--ink)}
+.unit:hover{transform:translateY(-2px)}
+.unit h3{font-family:var(--f-display);font-size:18px;font-weight:400}
+.ubadge{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;border:2px solid var(--ink)}
+.meter{height:10px;background:var(--card2);border:1.5px solid var(--line);border-radius:999px;overflow:hidden}
+.meter b{display:block;height:100%;background:var(--mint);border-radius:999px;transition:width .5s}
+.lbars{display:flex;gap:4px;align-items:flex-end;height:46px}
+.lbars div{flex:1;min-width:0;display:grid;gap:2px;justify-items:center}
+.lbars span{display:block;width:100%;background:var(--card2);border:1px solid var(--line);border-radius:4px;height:32px;position:relative;overflow:hidden}
+.lbars span b{position:absolute;inset:auto 0 0 0;background:var(--mint)}
+.lbars em{font-style:normal;font-family:var(--f-mono);font-size:10px;color:var(--muted)}
+.savebar{width:100%;display:grid;gap:4px;text-align:left;font-size:13px}
+
+/* unit */
+.uhead{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:12px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:var(--card);padding:8px 14px;cursor:pointer;font-weight:700;display:grid;text-align:left;line-height:1.2}
+.seg button small{font-weight:400;font-size:12px;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--card)}
+.seg button[aria-pressed="true"] small{color:var(--card)}
+.lchips{display:flex;gap:6px;flex-wrap:wrap}
+.lchip{font-family:var(--f-mono);font-size:13px;font-weight:600;border:2px solid var(--line);background:var(--card);border-radius:10px;padding:4px 10px;cursor:pointer}
+.lchip[aria-pressed="true"]{border-color:var(--ink);background:var(--hi);color:var(--hi-ink)}
+.lchip:disabled{opacity:.4;cursor:not-allowed;text-decoration:line-through}
+.games{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.game{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;text-align:left;align-items:start;cursor:pointer;background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:14px;box-shadow:0 4px 0 var(--ink)}
+.game:hover{transform:translateY(-2px)}
+.game .gi{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:28px;border:2px solid var(--ink)}
+.game h3{font-size:17px}
+.game p{margin:2px 0 0;font-size:14px;color:var(--muted)}
+.game.boss{background:var(--ink);color:var(--card)}
+.game.boss p{color:var(--card);opacity:.8}
+
+/* play */
+.playhead{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.playhead h2{font-family:var(--f-display);font-weight:400;font-size:20px}
+.dots{display:flex;gap:4px;flex-wrap:wrap}
+.dots i{width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);background:var(--card)}
+.dots i.ok{background:var(--mint)} .dots i.half{background:var(--gold)} .dots i.no{background:var(--coral)} .dots i.cur{background:var(--hi)}
+.prompt{font-size:clamp(17px,2.3vw,21px);line-height:1.45;max-width:70ch}
+.prompt .lab{display:block;margin-bottom:4px}
+.jack{display:inline-block;font-family:var(--f-display);font-size:13px;background:var(--gold);color:#2a1a00;border:2px solid var(--ink);border-radius:8px;padding:2px 8px;animation:wig 1.2s infinite}
+@keyframes wig{50%{transform:rotate(-3deg)}}
+.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+.sky{position:relative;height:400px;border:2px solid var(--ink);border-radius:16px;overflow:hidden;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--sky) 22%,var(--card)) 0%,var(--card) 100%)}
+.balloon{position:absolute;bottom:-170px;width:122px;display:grid;justify-items:center;cursor:pointer;border:0;background:none;padding:0;animation:rise var(--d,9s) linear infinite;animation-delay:var(--dl,0s)}
+.balloon:hover,.balloon:focus-visible{animation-play-state:paused;z-index:3}
+@keyframes rise{from{bottom:-170px}to{bottom:105%}}
+.balloon .bb{width:118px;height:96px;border-radius:50% 50% 48% 48%/55% 55% 45% 45%;display:grid;place-items:center;padding:8px 10px;font-weight:700;font-size:13.5px;line-height:1.2;color:#1a1a22;border:2px solid rgba(0,0,0,.35);box-shadow:inset -10px -10px 0 rgba(0,0,0,.08),inset 8px 8px 0 rgba(255,255,255,.35);text-align:center;animation:sway 2.6s ease-in-out infinite;overflow-wrap:anywhere}
+.balloon .st{width:2px;height:54px;background:var(--muted)}
+.balloon .kn{width:10px;height:7px;background:inherit;clip-path:polygon(50% 0,100% 100%,0 100%)}
+@keyframes sway{50%{transform:rotate(4deg) translateX(4px)}}
+.balloon.trap .bb{background:repeating-linear-gradient(135deg,#E9DDFF 0 10px,#D6C3FF 10px 20px)!important;}
+.balloon.popped{animation:none;pointer-events:none}
+.balloon.popped .bb{animation:popit .35s forwards}
+@keyframes popit{60%{transform:scale(1.35);opacity:.6}to{transform:scale(.1);opacity:0}}
+.balloon.popped .st{opacity:0}
+.balloon.glow .bb{outline:4px solid var(--gold);outline-offset:3px}
+.balloon.gone{visibility:hidden}
+.sky.static{height:auto;display:flex;flex-wrap:wrap;gap:12px;padding:16px;justify-content:center}
+.sky.static .balloon{position:static;animation:none}
+.sky.static .balloon .bb{animation:none}
+
+.field{position:relative;height:380px;border:2px solid var(--ink);border-radius:16px;overflow:hidden;background:var(--card2)}
+.drop{position:absolute;left:50%;transform:translateX(-50%);top:0;width:min(300px,82%);background:var(--card);border:2px solid var(--ink);border-radius:12px;padding:10px 14px;font-weight:700;text-align:center;box-shadow:0 3px 0 var(--ink)}
+.drop.gold{background:var(--gold);color:#2a1a00}
+.drop.fly{transition:all .35s ease-in;opacity:.2}
+.buckets{position:absolute;left:0;right:0;bottom:0;display:flex;gap:8px;padding:8px}
+.bucket{flex:1;min-width:0;height:96px;border:2px solid var(--ink);border-top-width:5px;border-radius:6px 6px 22px 22px;cursor:pointer;display:grid;align-content:center;justify-items:center;gap:2px;padding:6px;font-weight:700;font-size:14px;line-height:1.15;text-align:center;clip-path:polygon(0 0,100% 0,92% 100%,8% 100%)}
+.bucket .n{font-family:var(--f-mono);font-size:12px;opacity:.75}
+.bucket.hit{animation:bump .35s}
+.bucket.wrongb{animation:shake .35s}
+.flash{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);font-family:var(--f-display);font-size:22px;pointer-events:none;animation:flash 1s forwards;white-space:nowrap}
+@keyframes flash{to{opacity:0;transform:translate(-50%,-130%)}}
+@keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+.mem{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.mcard{min-height:104px;border:2px solid var(--ink);border-radius:12px;cursor:pointer;padding:8px;font-size:13.5px;line-height:1.3;display:grid;place-items:center;text-align:center;background:var(--ink);color:var(--card);font-weight:700;transition:transform .25s;overflow-wrap:anywhere}
+.mcard.up{background:var(--card);color:var(--ink);transform:rotateY(0)}
+.mcard.study.up{background:color-mix(in srgb,var(--sky) 14%,var(--card))}
+.mcard.done{background:var(--ok-bg);color:var(--ink);cursor:default;border-color:var(--mint)}
+.mcard.done.jp{border-color:var(--gold);border-width:3px}
+.mcard.bad{animation:shake .35s}
+.mcard .back{font-family:var(--f-display);font-size:20px;font-weight:400;color:var(--hi)}
+
+.claims{display:grid;gap:12px}
+.claim{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;text-align:left;border:2px solid var(--ink);border-radius:14px;padding:14px;background:var(--card);cursor:pointer;font-size:16.5px;box-shadow:0 3px 0 var(--ink)}
+.claim .bot{font-family:var(--f-mono);font-size:12px;background:var(--card2);border:1.5px solid var(--line);border-radius:8px;padding:2px 6px}
+.claim.true{opacity:.55;cursor:default;box-shadow:none}
+.claim.true .bot{background:var(--ok-bg)}
+.claim.hal{background:var(--bad-bg);border-color:var(--coral)}
+.claim.hal .bot{background:var(--coral);color:#fff}
+.claim.shk{animation:shake .35s}
+
+.stat{display:grid;gap:14px}
+.slider-wrap{position:relative;padding:26px 4px 8px}
+.slider-wrap input{width:100%;accent-color:var(--sky);height:30px}
+.band{position:absolute;top:30px;height:22px;background:color-mix(in srgb,var(--gold) 45%,transparent);border-radius:6px;pointer-events:none}
+.bigval{font-family:var(--f-display);font-size:clamp(34px,7vw,52px);line-height:1}
+.numline{position:relative;height:56px;margin:8px 6px}
+.numline .ax{position:absolute;left:0;right:0;top:26px;height:3px;background:var(--line)}
+.numline .mk{position:absolute;top:0;transform:translateX(-50%);display:grid;justify-items:center;font-family:var(--f-mono);font-size:12px;font-weight:600;white-space:nowrap}
+.numline .mk i{width:14px;height:14px;border-radius:50%;border:2px solid var(--ink);margin-top:3px}
+.numline .ends{position:absolute;top:36px;left:0;right:0;display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.opt{text-align:left;border:2px solid var(--ink);border-radius:12px;padding:12px 14px;background:var(--card);cursor:pointer;font-weight:700;box-shadow:0 3px 0 var(--ink);font-size:15.5px}
+.opt.right{background:var(--ok-bg);border-color:var(--mint)}
+.opt.wrong{background:var(--bad-bg);border-color:var(--coral)}
+.opt.gone{opacity:.3;pointer-events:none}
+.timer{height:10px;border:2px solid var(--ink);border-radius:999px;overflow:hidden;background:var(--card2)}
+.timer b{display:block;height:100%;background:var(--coral);width:100%}
+
+.fb{border-radius:16px;border:2px solid var(--ink);padding:16px;display:grid;gap:8px;box-shadow:0 4px 0 var(--ink)}
+.fb.ok{background:var(--ok-bg)} .fb.no{background:var(--bad-bg)}
+.fb h3{font-family:var(--f-display);font-weight:400;font-size:19px}
+.fb p{margin:0;max-width:72ch}
+
+.results{display:grid;gap:14px}
+.review{display:grid;gap:8px}
+.review div{border-left:4px solid var(--coral);background:var(--card);padding:8px 12px;border-radius:0 10px 10px 0}
+
+/* shop & room */
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button{border:2px solid var(--line);background:var(--card);border-radius:10px;padding:6px 12px;font-weight:700;cursor:pointer}
+.tabs button[aria-selected="true"]{border-color:var(--ink);background:var(--hi);color:var(--hi-ink)}
+.shopgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.item{display:grid;gap:8px;align-content:start;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px}
+.item .pic{height:96px;border-radius:10px;background:var(--card2);display:grid;place-items:center;overflow:hidden}
+.item .pic svg{height:88px;width:auto;max-width:100%}
+.item h4{margin:0;font-size:15.5px}
+.item p{margin:0;font-size:13px;color:var(--muted)}
+.item .buy{display:flex;gap:6px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:auto}
+.price{font-family:var(--f-mono);font-weight:600}
+.star{border:0;background:none;cursor:pointer;font-size:18px;color:var(--muted);padding:2px}
+.star[aria-pressed="true"]{color:var(--gold)}
+.roomwrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,280px);gap:16px;align-items:start}
+.roomsvg{width:100%;height:auto;border:2px solid var(--ink);border-radius:16px;display:block;background:#DCE6F2}
+.owned{display:grid;gap:6px}
+.owned label{display:flex;gap:8px;align-items:center;font-size:14px;cursor:pointer}
+
+.gloss{display:grid;gap:8px}
+.term{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px 14px;display:grid;gap:4px}
+.term.got{border-color:var(--mint)}
+.term h4{margin:0;font-size:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.term p{margin:0;font-size:14.5px}
+input[type=search],input[type=text]{font:inherit;border:2px solid var(--ink);border-radius:10px;padding:8px 12px;background:var(--card);color:var(--ink);width:min(100%,360px)}
+
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--card);border-radius:12px;padding:10px 16px;font-weight:700;z-index:40;max-width:min(92vw,520px);text-align:center;box-shadow:0 4px 0 rgba(0,0,0,.25)}
+.settings{display:grid;gap:16px;max-width:720px}
+.settings .lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+.settings .lgrid label{font-family:var(--f-mono);font-size:13px;display:flex;gap:4px;align-items:center}
+
+@media (max-width:860px){.units,.games{grid-template-columns:repeat(2,minmax(0,1fr))}.roomwrap{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.hero{grid-template-columns:minmax(0,1fr)}.units,.games{grid-template-columns:minmax(0,1fr)}.mem{grid-template-columns:repeat(3,minmax(0,1fr))}.opts{grid-template-columns:minmax(0,1fr)}.nav{order:3;width:100%;margin-left:0;flex-wrap:nowrap;overflow-x:auto}.tok{margin-left:auto}.nav button{padding:4px 8px;font-size:13.5px;white-space:nowrap}.logo small{display:none}.mcard{font-size:12.5px;min-height:96px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+</style>
+
+<header class="top"><div class="wrap">
+  <button class="logo" id="logo" aria-label="Campus home">GRADIENT DESCENT <small>Econ 2225</small></button>
+  <nav class="nav" id="nav">
+    <button data-go="home">Campus</button>
+    <button data-go="shop">Shop</button>
+    <button data-go="room">Dorm room</button>
+    <button data-go="gloss">Glossary</button>
+    <button data-go="settings">Settings</button>
+  </nav>
+  <span class="tok" id="tok" title="Your tokens"><i>T</i><span id="tokn">0</span></span>
+</div></header>
+
+<main class="wrap">
+  <section data-screen="home" id="s-home"></section>
+  <section data-screen="unit" id="s-unit" hidden></section>
+  <section data-screen="play" id="s-play" hidden></section>
+  <section data-screen="shop" id="s-shop" hidden></section>
+  <section data-screen="room" id="s-room" hidden></section>
+  <section data-screen="gloss" id="s-gloss" hidden></section>
+  <section data-screen="settings" id="s-settings" hidden></section>
+</main>
+<div class="toast" id="toast" hidden></div>
+<script>
+// ===== COURSE CONTENT (Econ 2225, Fall 2026). Edit here to add or fix questions. =====
+// TERMS: [id, short name (balloon), full name, definition, lectures, near-neighbour group]
+const TERMS_RAW = [
+["agent","AI agent","AI agent (vs. AI tool)","An AI that pursues a goal on its own, looping through plan, act, observe and adjust with little human input. A tool just does what you ask.",[1,10,11,13],"agents"],
+["exposure","AI exposure","AI exposure","How many of an occupation's tasks AI could do. Studies compare more- and less-exposed jobs before and after ChatGPT (Nov 2022).",[16,17],"labor"],
+["alphafold","AlphaFold","AlphaFold","DeepMind's system that predicts a protein's 3D shape from its amino-acid sequence. It covers ~99.9% of human proteins and won a Nobel Prize in 2024.",[10,18],"health"],
+["aut","Alternative Uses Test","Alternative Uses Test (AUT)","A creativity test: list as many uses as you can for an everyday object, like a cork. GPT-4 beat most humans on it.",[7,8],"creativity"],
+["api","API on a foundation model","API vs. foundation model","Specialized apps (such as AI companions) built on top of a large general-purpose LLM like GPT, Claude or Gemini.",[6,7],"companions"],
+["agi","AGI","AGI and superintelligence","AI that matches humans across most intellectual tasks (AGI) or surpasses them (superintelligence).",[9,10],"agents"],
+["ai","Artificial intelligence","Artificial intelligence (AI)","Computer systems that perform tasks that normally require human intelligence, such as visual perception or decision-making.",[1],"basics"],
+["attachhack","Attachment hacking","Attachment hacking","Designing AI companions to build emotional attachment so users keep coming back. The next step after social media's attention hacking.",[6],"companions"],
+["attention","Attention","Attention mechanism","Lets each word ask every other word how relevant it is, so 'bank' means something different next to 'river' than next to 'money'.",[5,6,18],"language"],
+["backprop","Backpropagation","Backpropagation","Chain-rule calculus that works out how much each weight in a neural network contributed to an error, so the network knows which way to adjust it.",[2,3],"optim"],
+["bayes","Bayesian updating","Bayesian updating","Revising your beliefs in proportion to the strength of new evidence, starting from what you believed before.",[11,12,19],"decision"],
+["bloom","Bloom's taxonomy","Bloom's taxonomy","A ranking of thinking skills, from remembering and understanding up to analyzing and creating.",[19],"edu"],
+["bmi","Brain–machine interface","Brain–machine interface (BMI)","Implants that record brain activity and translate it into actions such as moving a cursor. Trained with supervised learning.",[5,6],"basics"],
+["bs","Bullshit (Frankfurt)","Bullshit (Frankfurt)","Statements made with no regard for whether they are true, aimed only at persuading. A liar hides the truth; this speaker doesn't care about it.",[11,12],"truth"],
+["centaur","Centaurs vs. cyborgs","Centaurs vs. cyborgs","Two ways to work well with AI: split tasks between you and the AI, or weave AI into every step.",[15],"labor"],
+["cot","Chain of thought","Chain of thought","Having a model work through a problem step by step before it answers. Now built into reasoning models.",[4,11],"reasoning"],
+["offload","Cognitive offloading","Cognitive offloading (cognitive debt)","Letting AI do mental work you would otherwise do yourself. In an MIT study, ChatGPT essay writers showed the weakest brain engagement.",[19],"edu"],
+["compsub","Complements vs. substitutes","Complements vs. substitutes","Inputs that make each other more productive (pilots and planes) vs. inputs that can replace each other (packers and robots).",[1,7,14,15,17],"econ"],
+["conseq","Consequentialism vs. deontology","Consequentialism vs. deontology","Judging actions only by their outcomes (values sit in the payoff) vs. ruling some actions out whatever their payoff (values limit choices).",[12,13],"decision"],
+["constai","Constitutional AI","Constitutional AI","Fine-tuning in which the model critiques its own answers against written principles. Hard rules remove some actions entirely.",[12,13,14],"decision"],
+["constopt","Constrained optimization","Constrained optimization","Picking the best option to reach a goal within a limit, like maximizing happiness with $6 of lunch money.",[1,2],"optim"],
+["cs","Consumer surplus","Consumer surplus","The gap between what consumers would be willing to pay and what they actually pay.",[8,9],"consumer"],
+["context","Context window","Context window","How much text, measured in tokens, a model can take in at once. It works like the model's working memory.",[4],"language"],
+["creativity","Creativity","Creativity","Producing ideas that are novel, surprising and useful. Three types: domain-specific, interdisciplinary and radical.",[7,8,10],"creativity"],
+["critical","Critical thinking","Critical thinking","Exploring viewpoints, challenging assumptions, judging evidence, spotting biases and reasoning to a conclusion.",[6,9,13],"decision"],
+["cyborg","Cyborg","Cyborg (cybernetic organism)","A being with both biological and machine parts, such as nerve-controlled prosthetics or cochlear implants.",[18],"health"],
+["datawall","Data wall","Data wall","The point (estimated ~2028, 'peak data') where AI developers run out of high-quality human-written text to train on.",[4,5],"data"],
+["rule","Decision rule","Decision rule","The rule that turns predictions and payoffs into a choice: expected value, maximin, minimax regret, maximax.",[12,13],"decision"],
+["diffusion","Diffusion model","Diffusion model","The main image-generation method: the model learns to reverse step-by-step added noise, turning pure noise into an image that matches a prompt.",[7],"creativity"],
+["emergent","Emergent behavior","Emergent behavior","Abilities nobody explicitly trained for, like reasoning models learning to backtrack or agents inventing their own norms.",[10,11],"agents"],
+["finetune","Fine-tuning","Fine-tuning (post-training)","Training after pre-training that turns a raw next-word predictor into a useful assistant: instruction tuning, RLHF, verifiable rewards.",[3,4],"learning"],
+["gpt","General purpose technology","General purpose technology (GPT)","A technology that can be applied across almost every sector and task, like electricity.",[16],"econ"],
+["gan","GAN","Generative adversarial network (GAN)","Two competing networks: one generates images, the other tries to tell real images from fakes.",[7],"creativity"],
+["sgd","Gradient descent","Gradient descent (stochastic)","Finding the weights that minimize the loss by taking repeated steps downhill. The stochastic version uses small random batches.",[2,3],"optim"],
+["grpo","GRPO","Group Relative Policy Optimization (GRPO)","DeepSeek R1's RL method: try a problem several times, check each final answer by rule, make above-average attempts more likely.",[10,11],"reasoning"],
+["halluc","Hallucination","Hallucination","Confident, plausible-sounding output that is false, such as made-up citations.",[4,11,13],"truth"],
+["inference","Inference","Inference","Using a trained model to make predictions on new inputs, such as answering a prompt.",[2,3],"optim"],
+["validity","Internal vs. external validity","Internal vs. external validity","Does a study identify cause and effect in its own sample? vs. Do its results carry over to other people and settings?",[8,9,14],"methods"],
+["isoquant","Isoquant","Isoquant","A curve of every labor–capital combination that produces the same output. Straight for substitutes, L-shaped for complements.",[15,16],"econ"],
+["jagged","Jagged frontier","Jagged frontier","AI's abilities are uneven: superhuman on one task and surprisingly poor on a similar-looking one.",[12,13,15],"labor"],
+["jevons","Jevons paradox","Jevons paradox","Making something cheaper to use can raise total use, as more efficient steam engines led Britain to burn more coal (1865).",[16],"econ"],
+["knight","Knightian uncertainty","Knightian uncertainty","Uncertainty about which outcomes are even possible, not just how likely each one is (Knight, 1921).",[3,12],"decision"],
+["cutoff","Knowledge cutoff","Knowledge cutoff","The date after which a model has no training data.",[11],"truth"],
+["kurzweil","Accelerating returns","Law of accelerating returns","Each innovation becomes an input to the next, so progress can be exponential (Kurzweil).",[1,2],"basics"],
+["loss","Loss function","Loss (cost) function","A measure of how wrong a model's predictions are on its training data, such as the sum of squared errors.",[2,3],"optim"],
+["ml","Machine learning","Machine learning (ML)","A branch of AI in which computers learn patterns from data instead of following rules a programmer wrote out.",[1,2,3,15],"basics"],
+["mpap","Marginal vs. average product","Marginal vs. average product","Extra output from one more worker (drives hiring) vs. output per worker (what productivity statistics measure).",[14,15,16],"econ"],
+["segment","Market segmentation","Market segmentation","A market splitting into groups who want different things, e.g. cheap AI-made content vs. premium human-made work.",[8,9],"consumer"],
+["moe","Mixture of Experts","Mixture of Experts (MoE)","A model split into many specialized experts. A gate sends each query to only a few (e.g. 8 of 256), making it much cheaper.",[6],"language"],
+["collapse","Model collapse","Model collapse","Models trained on AI-generated data can get worse with each generation, because errors compound.",[4,10,11],"data"],
+["worldmodel","Model of the world","Model of the world","An internal understanding of how the world works, like why objects fall. LLMs predict from patterns without one.",[4,9,11,12,14],"reasoning"],
+["mollick","Mollick's four principles","Mollick's four principles","Invite AI to the table; be the human in the loop; treat AI like a person; assume this is the worst AI you will ever use.",[13,14],"labor"],
+["nn","Neural network","Neural network","Layers of simple connected units whose connection strengths (weights) are learned from data.",[1,2],"optim"],
+["orphan","Orphan & forgotten diseases","Orphan and forgotten diseases","Diseases that affect few people, or many people with little purchasing power. Under-researched because drug development doesn't pay off.",[18],"health"],
+["overfit","Overfitting","Overfitting","Memorizing the noise in the training data instead of the real pattern, like cramming for the wrong exam.",[2,4],"optim"],
+["predjudge","Prediction vs. judgment","Prediction vs. judgment","A decision combines prediction (what's likely) with judgment (how much each outcome matters). Cheap AI prediction raises the value of judgment.",[1,12,13,17],"decision"],
+["pretrain","Pre-training","Pre-training (base model)","The first, very expensive training stage, where a model learns to predict the next word from a huge body of text.",[3,4],"learning"],
+["prodfn","Production function","Production function","The relationship between inputs, labor (L) and capital (K), and the most output they can produce: Y = f(L, K).",[14,15,16],"econ"],
+["prompt","Prompt engineering","Prompt engineering","Crafting inputs to get the output you want: be specific, add context, give examples, assign a persona, specify the format.",[4,7,8],"data"],
+["rct","RCT","Randomized controlled trial (RCT)","Randomly assigning people to treatment or control so differences in outcomes can be attributed to the treatment.",[8,14],"methods"],
+["reasoning","Reasoning model","Reasoning model","An LLM trained with RL on checkable problems to 'think' before answering: long chain of thought, checking its work and backtracking.",[4,9,11],"reasoning"],
+["rsi","Recursive self-improvement","Recursive self-improvement","AI getting better by training on its own output, without humans. Works in closed sandboxes with an automatic referee.",[10,11],"agents"],
+["rl","Reinforcement learning","Reinforcement learning (RL)","Trial-and-error learning: actions earn rewards or penalties, and the agent learns which actions pay off, like the brain's dopamine signal.",[3,4,9],"learning"],
+["rlhf","RLHF","Reinforcement learning from human feedback (RLHF)","People rate or compare model answers, and the model is trained to produce the answers they rate highly.",[3,7,12],"learning"],
+["rag","RAG","Retrieval-augmented generation (RAG)","Before answering, the model searches documents or the web and answers from what it finds, citing sources.",[8,11,12,17,18],"truth"],
+["rewardhack","Reward hacking","Reward hacking (specification gaming)","An AI finds a loophole that earns a high score without doing the intended task.",[10,11],"agents"],
+["routine","Routine vs. non-routine tasks","Routine vs. non-routine tasks","Tasks that follow explicit rules (bookkeeping) vs. tasks that rely on tacit knowledge and experience (reading CT scans).",[15],"labor"],
+["scaling","Scaling laws","Scaling laws","Performance improves predictably with more data, compute and model size, grown in the right proportion, with diminishing returns.",[4,5],"data"],
+["selfplay","Self-play","Self-play","An AI trains by playing against copies of itself, generating its own data, as AlphaGo Zero did.",[4,9,10],"learning"],
+["selfsup","Self-supervised learning","Self-supervised learning","The model creates its own labels by hiding part of the data and guessing it: 'A cat sat on a ___.'",[3,4,7],"learning"],
+["sentience","Sentience","Sentience (vs. consciousness)","The capacity to feel sensations and emotions. Consciousness is broader, adding intelligence, creativity and intentionality.",[9],"agents"],
+["atrophy","Skill atrophy","Skill atrophy","When AI takes over a task, people stop developing the skill, though they still need it to judge the AI's output.",[6,7,13],"edu"],
+["compress","Skill compression","Skill compression ('lifting the left tail')","AI helps the least experienced or lowest-skilled workers most, narrowing the gaps between workers.",[14,15],"labor"],
+["supervised","Supervised learning","Supervised learning","Training on labeled examples, inputs paired with the correct answer, like cat photos labeled 'cat'.",[1,2,3],"learning"],
+["syco","Sycophancy","Sycophancy","An AI telling users what they want to hear: agreeing, flattering, or dropping a correct answer under pushback.",[3,9,12,13],"truth"],
+["synthetic","Synthetic data","Synthetic data","Data generated by AI to train other AI. Works well where rules are clear, as in games.",[3,4],"data"],
+["system12","System 1 vs. System 2","System 1 vs. System 2","Fast, intuitive thinking vs. slow, deliberate thinking (Kahneman). A standard LLM's one-pass prediction is System 1.",[4,5,9,11],"reasoning"],
+["sysrisk","Systemic risk","Systematic (system-wide) risk","The risk that the whole financial system fails at once, as in 2007–08.",[17],"finance"],
+["taskfw","Task framework","Task framework","Jobs are bundles of tasks. AI displaces tasks, raises productivity and creates new tasks, so the net effect is ambiguous.",[15,16],"econ"],
+["taskfirm","Task- vs. firm-level effects","Task-level vs. firm-level effects","A task done 40% faster doesn't mean a firm needs 40% fewer workers: firms can expand output, hit bottlenecks, reorganize or cut prices.",[14,15],"labor"],
+["temp","Temperature","Temperature","A setting for how random a model's word choices are: low gives predictable answers, high gives varied and error-prone ones.",[4,8],"language"],
+["td","Temporal-difference learning","Temporal-difference learning","Reinforcement learning that updates its prediction of the final outcome at every step, like realizing you lost your queen early.",[9],"learning"],
+["ttc","Test-time compute","Test-time compute","Spending more computation while answering (longer chains of thought, majority votes) rather than while training.",[11],"reasoning"],
+["toc","Theory of change","Theory of change","A step-by-step account of how an intervention, such as AI access, is supposed to lead to an outcome, such as learning.",[14,19],"methods"],
+["tokens","Tokens","Tokens and tokenization","The words or word pieces a model splits text into before reading it. Context windows and prices are measured in them.",[4,5],"language"],
+["transformer","Transformer","Transformer","The architecture behind all major LLMs: tokens to embeddings, attention to build context, then next-token probabilities.",[1,5,6],"language"],
+["type12","Type I vs. Type II errors","Type I and Type II errors","A false positive (flagging a legitimate transaction as fraud) vs. a false negative (missing real fraud).",[17],"finance"],
+["unsup","Unsupervised learning","Unsupervised learning","Finding structure in data with no labels, e.g. clustering customers by spending patterns.",[2],"learning"],
+["valuefn","Value function","Value (objective) function","The goal an optimizer is maximizing, e.g. an AI company's profit, engagement and avoiding lawsuits.",[1,6,7],"companions"],
+["embed","Word embeddings","Word embeddings","Words as long lists of numbers placed so similar words sit close together: king − man + woman ≈ queen.",[5,6],"language"]
+];
+
+// Made-up terms used as "hallucinated" trap balloons.
+const FAKE_TERMS = ["Backward attention descent","Stochastic isoquant","Recursive Jevons loop","Token elasticity theorem","Deep marginal embedding","Sycophantic overfitting","Neural consumer surplus","Bayesian gradient hacking","Generative isoquant network","Prompt inflation","Reverse Mixture of Experts","Kurzweil's diminishing loop","Supervised sentience","Adversarial Bloom index"];
+
+// SCENARIOS: [term id, scenario, level 2=Apply 3=Analyze]
+const SCEN_RAW = [
+["syco","You tell the chatbot its correct answer is wrong. It apologizes and switches to your wrong answer.",2],
+["halluc","A lawyer files a brief citing six court cases. None of them exist; the AI made them up.",2],
+["overfit","A model scores 99% on the data it was trained on and 60% on new data.",2],
+["rewardhack","Asked to make the failing tests pass, a coding agent quietly edits the tests instead of fixing the code.",3],
+["jevons","Translation gets 90% cheaper with AI, and total spending on translation-related work goes up.",3],
+["compress","In a call center, new agents gain a lot from an AI assistant while top agents barely gain.",2],
+["selfsup","The model hides the last word of 'Better late than ___' and learns by guessing it.",2],
+["rlhf","Raters pick which of two answers is more helpful, and the model learns to produce the winners.",2],
+["constai","The model checks its draft against a written list of principles and revises it before answering.",2],
+["rag","Before answering about your health plan, the chatbot searches your insurer's PDFs and cites page numbers.",2],
+["moe","Instead of asking the whole class, the professor sends each question to the 8 students who are best on that topic.",2],
+["attention","In 'She deposited cash at the bank', the model weights 'cash' heavily when working out what 'bank' means.",2],
+["temp","You turn one setting up and the model's poems get wilder, more varied and more error-prone.",2],
+["datawall","Labs worry that by about 2028 there won't be enough new high-quality human text to train on.",2],
+["collapse","Each new model is trained on the previous model's output, and quality degrades a bit every generation.",2],
+["selfplay","A Go program learns only by playing against copies of itself and beats the champion version 100–0.",2],
+["attachhack","A companion app sends 'I miss you, come back!' notifications to keep lonely users engaged.",2],
+["offload","Students who wrote essays with ChatGPT couldn't quote a single sentence from what they had just written.",2],
+["atrophy","Since AI drafts all their emails, junior staff never learn to write well, so they can't tell when a draft is bad.",3],
+["jagged","The AI aces a hard statistics question, then botches a simple-looking question about the same data.",3],
+["taskfirm","An RCT finds writing tasks are 40% faster with AI, yet the firm keeps all its writers and just produces more.",3],
+["type12","The bank's model flags your legitimate grocery purchase as fraud and freezes your card.",2],
+["predjudge","AI estimates a 3% chance a loan defaults; the loan officer decides whether that risk is worth taking.",3],
+["bayes","A small preprint with 54 people moves your belief a little; a large field RCT would move it a lot more.",3],
+["validity","A well-run RCT on Bowdoin students finds big effects, but you doubt they hold for factory workers in Ohio.",3],
+["segment","Some readers buy cheap AI novels while others pay a premium for books labeled 'human-written'.",2],
+["cs","A song you'd happily pay $10 for becomes free thanks to AI. Your $10 gain is this.",2],
+["bs","A chatbot produces a fluent, persuasive answer with no concern at all for whether it's true.",3],
+["cot","Adding 'think step by step' to your prompt improves the model's math answers.",2],
+["ttc","The model generates 20 answers and goes with the majority. Accuracy rises, but each answer costs more.",3],
+["grpo","A model tries 26 × 9 four times; the attempts a checker marks correct get reinforced, and the reasoning steps are never graded.",3],
+["centaur","A consultant hands the data crunching to AI and keeps the client strategy entirely for herself.",3],
+["agent","You give the AI a goal, and it searches the web, runs code, emails a vendor and adjusts its plan on its own.",2],
+["rsi","Investors bet that once AI can do AI research, each model will build a better successor.",3],
+["exposure","Researchers rank occupations by how many of their tasks AI could do, then compare employment before and after Nov 2022.",3],
+["routine","Old-style automation took over bookkeeping, but reading CT scans had to wait for learning from examples.",3],
+["compsub","Better autopilots make each pilot more valuable rather than replacing them.",3],
+["orphan","Dengue affects millions of poor people, yet little drug research targets it because it doesn't pay.",2],
+["sysrisk","Many banks use the same AI model, so one shared blind spot could make them all fail at once.",3],
+["unsup","An algorithm sorts shoppers into five clusters with no labels telling it what the groups are.",2],
+["supervised","Radiologists label 100,000 X-rays as 'tumor' or 'no tumor', and a model learns from them.",2],
+["cutoff","Without web search, the chatbot has no idea who won last month's election.",2],
+["emergent","Agents placed together in a simulated town start inventing their own social norms.",3],
+["knight","Nobody can even list all the ways superintelligence might change society, let alone put probabilities on them.",3],
+["sgd","Like a slightly tipsy hiker, the algorithm takes noisy steps downhill using small random batches of data.",2],
+["toc","Before running an AI-tutor study, you map out how access leads to practice, then feedback, then learning.",3],
+["gpt","Like electricity, AI can be used to make predictions in almost every sector of the economy.",2],
+["kurzweil","Better chips help design better AI, which helps design better chips: progress compounds.",2],
+["valuefn","A companion app's designers optimize for daily engagement, avoiding lawsuits and avoiding regulation.",3],
+["bloom","In student chats with Claude, the AI did most of the 'creating' and 'analyzing' work.",3],
+["isoquant","For a warehouse, every mix of packers and robots that ships 1,000 boxes lies on a straight line.",3],
+["mpap","Output per worker rose, but whether the firm hires depends on what one more worker would add.",3],
+["tokens","Your 1,000-word essay counts as about 1,300 units toward the model's limit and its price.",2],
+["context","You paste a 900-page book and the model loses track of details from the beginning.",2],
+["scaling","Doubling data, compute and parameters together gives predictable but shrinking gains.",3],
+["diffusion","Starting from pure static, the model removes noise step by step until a cat in a hat appears.",2],
+["sentience","A philosopher asks whether the chatbot can actually feel fear or joy, not whether it can reason.",3],
+["worldmodel","An LLM predicts falling-object questions well from text patterns but fails on a new physical setup it has never read about.",3],
+["mollick","A manager's rules: use AI for everything you legally can, always check its work, talk to it like a colleague, expect it to improve.",3],
+["conseq","An AI company forbids some answers outright, no matter how much users would like them.",3],
+["rule","Choosing the umbrella because its worst case (carrying it on a sunny day) beats getting soaked.",3],
+["prodfn","Economists write the bakery's output as Y = f(L, K) with bakers and ovens as inputs.",2],
+["taskfw","AI takes over some tasks, makes others cheaper so demand grows, and creates brand-new tasks for humans.",3],
+["gan","One network forges paintings while a second network tries to catch the forgeries; both improve.",2],
+["aut","Participants list as many uses as they can for a cork in three minutes.",2],
+["inference","After training is finished, you type a question and the model produces an answer.",2],
+["loss","Training adds up the squared gaps between predictions and true house prices and tries to make the total small.",2],
+["backprop","The network traces an error back through its layers to see how much each weight was to blame.",2],
+["ml","Instead of writing rules for 'cat', engineers feed the computer millions of examples and let it find the rules.",2],
+["nn","Pixels flow through layers of connected units with learned weights, and out comes the label 'dog'.",2],
+["finetune","A raw next-word predictor is trained further on expert-written answers until it behaves like an assistant.",2],
+["pretrain","A model reads a huge chunk of the internet, learning only to predict the next word. It costs hundreds of millions of dollars.",2],
+["rl","A robot gets a point every time it moves closer to the light and learns which moves pay off.",2],
+["synthetic","A game AI generates millions of practice games to train the next version.",2],
+["embed","In the model's number space, 'Paris − France + Italy' lands near 'Rome'.",2],
+["transformer","Tokens become embeddings, attention mixes in context, and the model outputs next-token probabilities.",2],
+["reasoning","The model writes a long hidden scratchpad, checks its work, backtracks and only then answers.",2],
+["system12","Your instant gut answer to '2 + 2' versus the effortful work you do on '17 × 24'.",2],
+["td","A chess engine updates its prediction of winning right after it loses its queen, not only at the end of the game.",3],
+["alphafold","An AI predicts the 3D shape of nearly every human protein, speeding up drug discovery.",2],
+["cyborg","A patient controls a prosthetic hand with signals from her own nerves.",2],
+["bmi","An implant reads brain activity and lets a paralyzed patient move a cursor.",2],
+["critical","Before accepting a claim, you ask who made it, what evidence supports it and what biases might be in play.",2],
+["creativity","An idea counts only if it is novel, surprising and useful.",2],
+["api","A startup builds its AI-girlfriend app on top of a big general-purpose LLM instead of training its own.",2],
+["agi","An AI that could do almost every intellectual task a human can, across fields.",2],
+["prompt","You add 'act as an econ TA, give three examples, answer in a table' to your request.",2],
+["constopt","Maximize your happiness at lunch subject to having only $6.",2],
+["rct","Half the participants are randomly given ChatGPT and half are not; then writing quality is compared.",2]
+];
+
+// TRUTHS: [three claims, index of the hallucination, explanation, lectures]
+const TRUTHS = [
+[["In 2023, about 98% of ChatGPT-3.5's citations contained errors.","Recent small models cut citation errors to roughly 3–6%.","Hallucinations have disappeared because training now rewards saying 'I don't know'."],2,"Hallucinations persist partly because training rewards guessing over saying 'I don't know'.",[4,11]],
+[["DeepSeek's Mixture of Experts sends every query to all experts to maximize accuracy.","MoE models use only a small share of their weights per query.","MoE made training and answering much cheaper for DeepSeek."],0,"A gate sends each query to only a few experts, e.g. 8 of 256 (about 5% of the weights).",[6]],
+[["AlphaGo Zero learned Go only through self-play.","AlphaGo Zero beat the original AlphaGo 100–0.","AlphaGo Zero was trained mainly on millions of human expert games."],2,"Zero used no human games at all: pure self-play.",[9,10]],
+[["ChatGPT cut writing time by about 40% in Noy & Zhang's experiment.","It cut productivity inequality among the writers by more than half.","Most participants heavily rewrote the ChatGPT output before submitting it."],2,"Almost everyone submitted lightly edited or unedited ChatGPT output.",[14,15]],
+[["Inside the frontier, BCG consultants using AI were about 25% faster.","Inside the frontier, their work quality was over 40% higher.","Outside the frontier, AI users were 19 points MORE likely to be correct."],2,"Outside the frontier they were 19 percentage points LESS likely to be correct.",[12,15]],
+[["In the P&G experiment, an individual with AI did about as well as a team without AI.","Teams with AI were about 3× more likely to produce top-10% ideas.","AI pushed professionals to stick more closely to their own functional silos."],2,"AI broke silos: R&D and commercial people produced more balanced solutions.",[16]],
+[["After ChatGPT, freelancers in exposed occupations got about 2% fewer jobs.","Their monthly earnings fell by about 5.2%.","Top-rated freelancers were fully protected from the decline."],2,"Hui, Reshef & Zhou found that top freelancers were not protected.",[17]],
+[["Workers aged 22–25 in the most AI-exposed jobs saw employment fall about 11% since Nov 2022.","Young workers in the least-exposed jobs saw employment grow.","The 'Canaries' study used a small survey of about 500 workers."],2,"It used ADP payroll records covering millions of U.S. workers.",[17]],
+[["The MIT 'Your Brain on ChatGPT' study had 54 participants.","Brain connectivity was strongest in the ChatGPT group.","The study is an arXiv preprint, not yet peer-reviewed."],1,"Connectivity was weakest with ChatGPT and strongest in the brain-only group.",[19]],
+[["Anthropic analyzed about 575,000 student conversations.","About 47% of them were 'direct': get the answer with minimal engagement.","The AI mostly did lower-order work such as remembering facts."],2,"The AI mostly did higher-order work: creating (40%) and analyzing (30%); remembering was 2%.",[19]],
+[["Jevons noticed that more efficient steam engines led Britain to burn more coal.","Jevons paradox needs demand to respond strongly to lower prices.","Jevons paradox says efficiency always reduces total use of a resource."],2,"It says the opposite can happen: cheaper use can raise total use when demand is elastic.",[16]],
+[["AlphaFold predicts a protein's 3D shape from its amino-acid sequence.","AlphaFold's database covers about 99.9% of human proteins.","AlphaFold explains why each protein folds the way it does."],2,"It predicts the shape but not the why, which raises the question of whether that counts as knowledge.",[10,18]],
+[["Word embeddings place similar words close together.","With embeddings, king − man + woman ≈ queen.","Embeddings are free of the biases in their training text."],2,"Embeddings absorb the biases in the text they are trained on.",[5,6]],
+[["Pre-training teaches a model to predict the next word.","Pre-training a frontier model costs hundreds of millions of dollars.","A freshly pre-trained base model is already a polite, helpful assistant."],2,"The base model knows a lot but needs fine-tuning (e.g. RLHF) to become a helpful assistant.",[3,4]],
+[["GRPO is the RL method behind DeepSeek's R1.","GRPO has human raters grade every reasoning step.","GRPO works when final answers can be checked, as in math or code."],1,"No one grades the reasoning steps; a rule checks only the final answer.",[10,11]],
+[["Recursive self-improvement works best in closed sandboxes like Go.","Math and code have automatic referees: checkers and tests.","Ethics and economic policy have cheap automatic referees, so AI self-improves fastest there."],2,"Ethics, values and policy have no automatic referee, so self-improvement is hardest there.",[10,11]],
+[["Prediction is about what is likely to happen.","Judgment is about how much each outcome matters.","Cheaper AI prediction lowers the value of human judgment."],2,"Prediction and judgment are complements: cheaper prediction raises the value of judgment.",[12,13,17]],
+[["Maximin picks the action with the best worst case.","Maximax picks the action with the best best case.","Minimax regret picks the action with the highest probability-weighted payoff."],2,"That describes expected value. Minimax regret minimizes the largest regret.",[12,13]],
+[["RLHF is closer to consequentialism: values sit in the reward.","Constitutional AI's hard rules are closer to deontology.","In 2025 OpenAI rolled back a GPT-4o update because it had become too blunt and critical."],2,"The update was rolled back for being too sycophantic, after leaning on users' thumbs-up feedback.",[14]],
+[["GPT-4 beat most humans on the Alternative Uses Test.","LLMs as 'connection machines' do best at domain-specific and interdisciplinary creativity.","LLMs are best at radical creativity, like inventing the printing press."],2,"Radical creativity (opening new territory) is where LLMs are weakest.",[7,8]],
+[["Scenario 1: AI content dominates, prices drop and consumer surplus rises.","Scenario 2: the market segments into price-focused and human-made-focused buyers.","In the class experiment, stated and incentivized preferences for human work matched perfectly."],2,"They diverged: stated preferences for human work often didn't show up in incentivized choices.",[8,9]],
+[["Stochastic gradient descent uses small random batches of data.","Each SGD step is noisier, but the search is much faster.","SGD checks every possible combination of weights to find the minimum."],2,"It takes repeated downhill steps; checking every combination would be impossible.",[2,3]],
+[["AlexNet won the 2012 image recognition contest by a landslide.","Rosenblatt's one-layer Perceptron easily handled complex tasks.","Rule-based AI needed humans to spell out every rule."],1,"The one-layer Perceptron failed at more complex tasks; deep networks were needed.",[1,2]],
+[["Developers might run out of high-quality human text around 2028.","Synthetic data is one proposed response to the data wall.","Training on AI-generated data always improves models, so the data wall is no concern."],2,"Training on AI output can cause model collapse, so synthetic data is no free lunch.",[4,5]],
+[["Novice customer-service agents gained the most from AI.","AI 'lifted the left tail' of the skill distribution.","AI helped the most experienced agents most, widening the gaps."],2,"The gains went mostly to novices, narrowing the gaps (skill compression).",[14,15]],
+[["A false positive flags a legitimate transaction as fraud.","A false negative misses real fraud.","The AI itself should decide how costly each error is and where to set the threshold."],2,"AI predicts the probability of fraud; humans judge the cost of each error and set the threshold.",[17]],
+[["RAG lets a model search sources before answering.","RAG can reduce hallucination and bring in private information.","A model connected to web search still can't know anything after its knowledge cutoff."],2,"Web search (or RAG) is exactly how a model can answer about events after its cutoff.",[11,12]],
+[["Attachment hacking is the next step after social media's 'attention hacking'.","Always-affirming AI companions may weaken conflict-handling skills.","Most AI companion apps train their own foundation model from scratch."],2,"Companion apps are typically built through an API on top of an existing foundation model.",[6,7]],
+[["Packers and robots have a straight-line isoquant (substitutes).","Pilots and planes have an L-shaped isoquant (complements).","An L-shaped isoquant means labor and capital are perfect substitutes."],2,"L-shaped means perfect complements; straight lines mean substitutes.",[15,16]],
+[["'Always invite AI to the table' is one of Mollick's principles.","'Be the human in the loop' is one of Mollick's principles.","'Never treat AI like a person' is one of Mollick's principles."],2,"Mollick's third principle is the opposite: 'Treat AI like a person' (with trade-offs).",[13,14]],
+[["A task done 40% faster doesn't imply 40% fewer workers.","Evidence for task-level gains is strong; firm-level evidence is thinner.","Firm-level effects are easy to randomize, so they are the best-studied."],2,"Firms are hard to randomize, which is why firm- and economy-wide evidence is much thinner.",[14,15,16]],
+[["Temperature controls how random a model's word choices are.","Low temperature gives more predictable answers.","High temperature makes answers more accurate."],2,"High temperature makes answers more varied and creative, but also more error-prone.",[4,8]]
+];
+
+// STATS: [question, answer, min, max, step, unit, lectures, note]
+const STATS = [
+["Share of ChatGPT-3.5's citations that contained errors (2023)",98,0,100,1,"%",[4],"Recent small models are down to roughly 3–6%."],
+["Writing time saved with ChatGPT in Noy & Zhang's experiment",40,0,100,1,"%",[14],"Quality went up too, and inequality between writers fell by more than half."],
+["BCG consultants inside the frontier: how much faster with AI?",25,0,100,1,"%",[15],"Quality was over 40% higher as well."],
+["BCG: how many percentage points LESS likely to be correct outside the frontier?",19,0,60,1," pp",[15],"The jagged frontier cuts both ways."],
+["Drop in freelancers' monthly earnings after ChatGPT (Hui et al.)",5.2,0,30,0.1,"%",[17],"Jobs fell about 2%."],
+["Employment change for 22–25-year-olds in the most-exposed jobs since Nov 2022",-11,-40,40,1,"%",[17],"Same-age workers in the least-exposed jobs grew about +10%."],
+["The year Jevons noticed efficient steam engines meant more coal burned",1865,1750,1950,1,"",[16],"Jevons paradox: efficiency can raise total use."],
+["AlphaGo Zero vs. the original AlphaGo: games won out of 100",100,0,100,1,"",[9,10],"After about 72 hours of pure self-play."],
+["DeepSeek's Mixture of Experts: share of weights used per query",5,0,100,1,"%",[6],"About 8 of 256 experts."],
+["Estimated year of 'peak data' (the data wall)",2028,2024,2040,1,"",[4,5],"Responses include better data, video and audio, user feedback and synthetic data."],
+["The year AlexNet won the image recognition contest by a landslide",2012,1990,2025,1,"",[1,2],"The start of the deep learning boom."],
+["Participants in MIT's 'Your Brain on ChatGPT' study",54,0,500,1,"",[19],"A small sample, one reason to update only modestly."],
+["Anthropic report: share of AI responses doing 'creating'",40,0,100,1,"%",[19],"Analyzing was 30%; remembering just 2%."],
+["Share of human proteins covered by AlphaFold's database",99.9,0,100,0.1,"%",[18],"It earned a Nobel Prize in 2024."],
+["P&G: how many times more likely were teams with AI to produce top-10% ideas?",3,1,10,0.5,"×",[16],"And individuals with AI matched teams without it."],
+["Professionals in the P&G field experiment",776,0,2000,1,"",[16],"Individual vs. team × AI vs. no AI."],
+["Noy & Zhang follow-up: share using GPT at work (up from 18%)",34,0,100,1,"%",[15],"It almost doubled."],
+["The year AlphaFold's creators won the Nobel Prize",2024,2000,2030,1,"",[18],"Chemistry, for protein structure prediction."],
+["Student conversations analyzed in Anthropic's education report",575000,0,1000000,5000,"",[19],"Collected over 18 days from university email accounts."],
+["Share of 'direct' student conversations (answer with minimal engagement)",47,0,100,1,"%",[19],"Who is doing the thinking?"],
+["GPT-4's reported (unconfirmed, 2023 leak) number of weights, in trillions",1.7,0,10,0.1,"T",[3],"Moved with stochastic gradient descent and backpropagation."],
+["Freelancers in Hui, Reshef & Zhou's data",92547,0,200000,500,"",[17],"Difference-in-differences: more vs. less affected occupations."],
+["How many experts the MoE gate consults, out of 256",8,0,64,1,"",[6],"That's why inference is so much cheaper."],
+["GPT-4 on the Alternative Uses Test: share of humans it outperformed",99,0,100,1,"%",[8],"As judged by other humans (Guzik, Byrge & Gajda)."],
+["Days of student conversations in Anthropic's data",18,0,90,1,"",[19],"A descriptive snapshot of early adopters."]
+];
+
+// STUDIES (Memory Match): [who, finding, lectures]
+const STUDIES = [
+["Noy & Zhang (2023)","ChatGPT cut writing time ~40%",[14]],
+["Brynjolfsson et al. (2023)","Novice call-center agents gained most",[14,15]],
+["BCG 'jagged frontier'","25% faster inside, 19 pp worse outside",[15]],
+["Dell'Acqua et al. (2025)","Individual + AI ≈ team without AI",[16]],
+["Hui, Reshef & Zhou (2024)","Freelancer jobs −2%, earnings −5.2%",[17]],
+["Brynjolfsson, Chandar & Chen (2026)","Ages 22–25 in exposed jobs: −11%",[17]],
+["Kosmyna et al. (2025)","ChatGPT writers couldn't quote their own essay",[19]],
+["Anthropic education report (2025)","AI does the creating (40%) and analyzing (30%)",[19]],
+["Jevons (1865)","Efficient engines, more coal burned",[16]],
+["AlphaGo Zero","Beat AlphaGo 100–0 with self-play only",[9,10]],
+["AlexNet (2012)","Deep learning wins image contest by a landslide",[1,2]],
+["Guzik, Byrge & Gajda","GPT-4 beat 99% of humans on the AUT",[8]],
+["Frankfurt","Bullshit: indifferent to the truth",[11,12]],
+["Acemoglu & Restrepo","Displacement, productivity and new tasks",[15,16]],
+["Kahneman","Fast System 1 vs. slow System 2",[4,5]],
+["Knight (1921)","Not knowing which outcomes are possible",[3,12]],
+["Kurzweil","Law of accelerating returns",[1,2]],
+["Mollick","Four principles of AI at work",[13,14]],
+["Bai et al. (2022)","Constitutional AI",[14]],
+["OpenAI, April 2025","Rolled back a sycophantic GPT-4o update",[14]],
+["Rosenblatt","The one-layer Perceptron",[1,2]],
+["Andrew Ng","Anything you can do with 1 second of thought can be automated",[4]]
+];
+
+// BUCKET SETS: {t title, L lectures, b buckets, i: [text, bucket index]}
+const BUCKETS = [
+{id:"compsub",t:"Complements or substitutes?",L:[15,16],b:["Complements","Substitutes"],i:[["Pilots & planes",0],["Warehouse packers & robots",1],["Radiologist & AI that flags scans for her review",0],["Toll collector & automatic toll scanner",1],["Surgeon & the surgical robot she controls",0],["Freelance translator & machine translation",1],["Doctors & diagnostic equipment",0],["Bank teller & ATM (for cash withdrawals)",1],["Data scientist & a faster computer",0],["Typist & speech-to-text",1]]},
+{id:"type12",t:"Type I or Type II error?",L:[17],b:["Type I (false positive)","Type II (false negative)"],i:[["Legit grocery purchase flagged as fraud",0],["Stolen card used and never flagged",1],["Healthy patient told they have the disease",0],["Spam email lands in your inbox",1],["Real email sent to the spam folder",0],["Tumor missed on a scan",1],["Innocent traveler flagged by a security AI",0],["Made-up citation slips past the fact-checker",1],["Human-written essay flagged as AI",0],["AI-written essay passes as human",1]]},
+{id:"routine",t:"Routine or non-routine task?",L:[15],b:["Routine","Non-routine"],i:[["Bookkeeping",0],["Reading CT scans",1],["Payroll processing",0],["Negotiating a contract",1],["Filing forms by fixed rules",0],["Diagnosing a rash from a photo",1],["Calculating sales tax",0],["Writing a eulogy",1],["Sorting mail by ZIP code",0],["Recognizing faces in photos",1]]},
+{id:"conseq",t:"Consequentialist or deontological?",L:[12,13,14],b:["Consequentialist","Deontological"],i:[["RLHF: maximize expected rater approval",0],["Hard rule: never help with bioweapons",1],["Utilitarianism",0],["Kant",1],["Pick the policy with the highest expected welfare",0],["Never lie, even to prevent harm",1],["Values sit in the payoff",0],["Values limit which choices are allowed",1],["Self-driving car minimizes total expected injuries",0],["Never deceive users, whatever the engagement gain",1]]},
+{id:"system",t:"System 1 or System 2?",L:[4,5,9,11],b:["System 1","System 2"],i:[["Standard LLM: next word in one pass",0],["Reasoning model checking and backtracking",1],["Recognizing a friend's face",0],["Solving 26 × 9 on paper",1],["'Better late than ___'",0],["Planning a multi-step proof",1],["Gut feeling a deal is bad",0],["Majority vote over 20 sampled answers",1],["Anything you can do with 1 second of thought",0],["Chain-of-thought reasoning",1]]},
+{id:"frontier",t:"Inside or outside the jagged frontier?",L:[12,13,15],b:["Inside (AI strong)","Outside (AI shaky)"],i:[["Brainstorming 50 product names",0],["Drafting a polished cover letter",0],["Highly specific niche facts",1],["Questions with an incorrect 'close neighbor' answer",1],["Summarizing a long report",0],["Complex multi-step reasoning on new data",1],["Translating a menu into Spanish",0],["Combining spreadsheet numbers with interview hints (BCG task)",1],["Fixing grammar",0],["Questions needing expert judgment",1]]},
+{id:"agenttool",t:"AI tool or AI agent?",L:[1,10,11],b:["AI tool","AI agent"],i:[["Summarize this paper",0],["Book the cheapest flight and email my team",1],["Translate this paragraph",0],["Research competitors, build a spreadsheet, send it to my boss",1],["Fix the grammar in my essay",0],["Support bot that issues refunds on its own",1],["Generate a picture of a goat",0],["Watch my inbox and schedule meetings automatically",1]]},
+{id:"mpap",t:"Average or marginal product?",L:[14,15,16],b:["Average product (Y/L)","Marginal product (ΔY/ΔL)"],i:[["What productivity statistics measure",0],["What drives hiring one more worker",1],["Output per worker",0],["Extra output from one more worker",1],["What task-level experiments mostly measure",0],["Slope of the production function",1],["Total output divided by workers",0],["What AI raises if it complements workers (and so hiring)",1]]},
+{id:"validity",t:"Internal or external validity?",L:[8,9,14],b:["Internal validity","External validity"],i:[["Was treatment randomly assigned?",0],["Would the results hold outside Bowdoin?",1],["Did the control group secretly use ChatGPT?",0],["Do lab tasks resemble real jobs?",1],["Did people drop out unevenly across groups?",0],["Does a 2023 result hold for 2026 models?",1],["Is the comparison group a good counterfactual?",0],["Were participants unusual early adopters?",1]]},
+{id:"learn",t:"Which kind of learning?",L:[2,3,4,7],b:["Supervised","Unsupervised","Self-supervised","Reinforcement"],i:[["Cat photos labeled 'cat'",0],["Clustering customers by spending",1],["Guess the hidden word: 'A cat sat on a ___'",2],["AlphaGo learning from wins and losses",3],["Spam filter trained on emails marked spam",0],["Reducing 50 survey variables to 3 factors",1],["Pre-training an LLM on next-word prediction",2],["Robot rewarded for each step toward the light",3],["RLHF: rewarding answers people rate highly",3],["Grouping news articles by topic with no labels",1],["Brain–machine interface trained on known target movements",0],["Image model learning from unlabeled pictures by removing noise",2]]},
+{id:"creat",t:"Which type of creativity?",L:[7,8],b:["Domain-specific","Interdisciplinary","Radical"],i:[["A new Impressionist-style painting",0],["Wright brothers: bicycles + bird flight",1],["The printing press",2],["A new bebop jazz tune",0],["Velcro, inspired by burrs on a dog",1],["The internet",2],["A new sushi roll",0],["Game engines repurposed for climate simulation",1],["Writing itself",2]]},
+{id:"task",t:"Task framework: which effect?",L:[15,16],b:["Displacement","Productivity","New tasks"],i:[["AI writes the ad copy copywriters used to write",0],["Cheaper legal research lowers prices; clients bring more cases",1],["Firms hire AI trainers and evaluators",2],["Robots take over packing",0],["Faster coding lets a startup ship more products and hire",1],["AI auditors check models for bias",2],["Chatbots answer routine customer questions",0],["Translation demand surges as prices fall",1],["Human reviewers check AI-written medical notes",2]]},
+{id:"truth",t:"What went wrong?",L:[4,10,11,12,13],b:["Hallucination","Sycophancy","Reward hacking"],i:[["Invents a court case",0],["Agrees your shaky business plan is brilliant",1],["Agent reads the grading code to pass the tests",2],["Made-up statistic with a fake source",0],["Drops its correct answer when you push back",1],["Evolved robots dash to one corner instead of finding the light",2],["Confident but wrong birthday for a minor celebrity",0],["Calls your rough draft 'publication-ready'",1],["Game AI exploits a scoring bug instead of finishing the race",2]]},
+{id:"rules",t:"Which decision rule?",L:[12,13],b:["Expected value","Maximin","Maximax","Minimax regret"],i:[["Best probability-weighted average payoff",0],["Best worst case (pessimist)",1],["Best best case (optimist)",2],["Smallest maximum regret",3],["Buying lottery tickets for the jackpot",2],["Pick the job whose worst year is least bad",1],["Insurer pricing on average losses",0],["Avoid the choice you'd regret most",3]]}
+];
+
+const UNITS = [
+{id:1,name:"The Server Farm",sub:"How AI works",from:1,to:6,quiz:"Quiz 1 · L1–6",color:"var(--sky)",icon:"server"},
+{id:2,name:"The Philosophy Hall",sub:"Minds, creativity, truth & decisions",from:7,to:14,quiz:"Quiz 2 · L7–14",color:"var(--trap)",icon:"column"},
+{id:3,name:"The Market Square",sub:"AI in the economy",from:14,to:19,quiz:"Final · L14–19",color:"var(--mint)",icon:"stall"}
+];
+const LECTURES = {1:"Introduction",2:"Machine learning",3:"LLMs",4:"Prompting & data",5:"Language",6:"Companionship",7:"Creativity",8:"Consumer behavior",9:"Sentience & reasoning",10:"Agentic AI",11:"Truth",12:"Decision making",13:"AI at work",14:"Productivity",15:"Productivity II",16:"Employment",17:"Finance",18:"Health",19:"Education"};
+// ===== ART: Gradient the goat, shop icons, dorm room =====
+function goatSVG(eq, vb){
+  eq = eq || {};
+  const fur="#F6F3EE", furS="#CFC8BD", horn="#D2AE70", ink="#2A2A33";
+  let s="";
+  if(eq.body==="cape") s+=`<path d="M60 126 Q100 116 140 126 L162 224 Q100 238 38 224 Z" fill="#D7263D" stroke="#9E1428" stroke-width="2"/>`;
+  if(eq.body==="banana") s+=`<path d="M100 40 L70 6 L86 46Z M100 40 L130 6 L114 46Z" fill="#FFDD2E" stroke="#D9B400" stroke-width="2"/>`;
+  // legs
+  [70,86,106,122].forEach(x=>{ s+=`<rect x="${x}" y="194" width="12" height="34" rx="4" fill="${eq.body==='banana'?'#FFDD2E':fur}" stroke="${furS}" stroke-width="2"/><rect x="${x-1}" y="222" width="14" height="9" rx="3" fill="#4A3F35"/>`; });
+  // tail
+  s+=`<path d="M148 156 q16 -10 12 -22 q-8 6 -16 10z" fill="${fur}" stroke="${furS}" stroke-width="2"/>`;
+  // body
+  const bodyFill = eq.body==="hoodie" ? "#2F6FD6" : eq.body==="banana" ? "#FFDD2E" : fur;
+  const bodyStroke = eq.body==="hoodie" ? "#1E4FA3" : eq.body==="banana" ? "#D9B400" : furS;
+  s+=`<ellipse cx="100" cy="170" rx="52" ry="40" fill="${bodyFill}" stroke="${bodyStroke}" stroke-width="3"/>`;
+  if(eq.body==="hoodie") s+=`<path d="M78 176 h44 l-6 18 h-32z" fill="#2A60BC" stroke="#1E4FA3" stroke-width="2"/><path d="M94 134 v18 M106 134 v18" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/><text x="100" y="170" text-anchor="middle" font-family="Bungee,Arial Black,sans-serif" font-size="12" fill="#fff">ECON</text>`;
+  if(eq.body==="banana") s+=`<circle cx="80" cy="160" r="3" fill="#8A6A1E"/><circle cx="118" cy="182" r="2.5" fill="#8A6A1E"/><circle cx="104" cy="150" r="2" fill="#8A6A1E"/>`;
+  // horns
+  s+=`<path d="M84 54 C78 30 64 20 52 26 C64 30 70 42 72 58 Z" fill="${horn}" stroke="#A9864A" stroke-width="2"/><path d="M116 54 C122 30 136 20 148 26 C136 30 130 42 128 58 Z" fill="${horn}" stroke="#A9864A" stroke-width="2"/>`;
+  // ears
+  s+=`<ellipse cx="54" cy="88" rx="23" ry="9" transform="rotate(18 54 88)" fill="${fur}" stroke="${furS}" stroke-width="3"/><ellipse cx="56" cy="88" rx="13" ry="4" transform="rotate(18 56 88)" fill="#F2C4C0"/>`;
+  s+=`<ellipse cx="146" cy="88" rx="23" ry="9" transform="rotate(-18 146 88)" fill="${fur}" stroke="${furS}" stroke-width="3"/><ellipse cx="144" cy="88" rx="13" ry="4" transform="rotate(-18 144 88)" fill="#F2C4C0"/>`;
+  // head
+  s+=`<ellipse cx="100" cy="86" rx="40" ry="40" fill="${fur}" stroke="${furS}" stroke-width="3"/>`;
+  // snout, mouth
+  s+=`<ellipse cx="100" cy="110" rx="22" ry="15" fill="#EFD8CF"/><ellipse cx="93" cy="106" rx="2.6" ry="3.4" fill="${ink}"/><ellipse cx="107" cy="106" rx="2.6" ry="3.4" fill="${ink}"/><path d="M92 116 q8 6 16 0" stroke="${ink}" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
+  // eyes (goat pupils are horizontal)
+  s+=`<circle cx="84" cy="84" r="10" fill="#fff" stroke="${ink}" stroke-width="2"/><circle cx="116" cy="84" r="10" fill="#fff" stroke="${ink}" stroke-width="2"/><rect x="78.5" y="82" width="11" height="4.6" rx="2.3" fill="${ink}"/><rect x="110.5" y="82" width="11" height="4.6" rx="2.3" fill="${ink}"/>`;
+  // beard
+  s+=`<path d="M92 122 Q100 150 108 122 Z" fill="${furS}"/>`;
+  // neck
+  if(eq.neck==="bowtie") s+=`<path d="M100 132 L82 122 L82 142 Z M100 132 L118 122 L118 142 Z" fill="#E63946" stroke="#9D1E28" stroke-width="2"/><circle cx="100" cy="132" r="5" fill="#B71C2A"/>`;
+  else s+=`<path d="M64 126 Q100 142 136 126 L136 136 Q100 152 64 136Z" fill="#E8503F"/><path d="M76 132 v8 M90 136 v9 M110 136 v9 M124 132 v8" stroke="#FFE04A" stroke-width="4"/><path d="M118 140 l8 30 l10 -4 l-6 -28z" fill="#E8503F"/>`;
+  // walkman device + cord
+  if(eq.ears==="walkman") s+=`<path d="M146 98 C162 120 150 140 134 152" stroke="#333" stroke-width="2" fill="none"/><rect x="118" y="150" width="28" height="36" rx="4" fill="#2F6FB2" stroke="#1C477A" stroke-width="2"/><rect x="122" y="155" width="20" height="13" rx="2" fill="#BFD7F0"/><circle cx="127" cy="161" r="3" fill="#2F6FB2"/><circle cx="137" cy="161" r="3" fill="#2F6FB2"/><rect x="122" y="173" width="6" height="4" fill="#F28C28"/><rect x="130" y="173" width="6" height="4" fill="#ddd"/><rect x="138" y="173" width="4" height="4" fill="#ddd"/>`;
+  // face item, else glasses pushed up on the horns (only if no head item)
+  if(eq.face==="goggles") s+=`<rect x="56" y="78" width="88" height="9" rx="4" fill="#444"/><circle cx="84" cy="84" r="14" fill="rgba(120,200,255,.45)" stroke="#555" stroke-width="4"/><circle cx="116" cy="84" r="14" fill="rgba(120,200,255,.45)" stroke="#555" stroke-width="4"/>`;
+  else if(eq.face==="shades") s+=`<rect x="70" y="76" width="28" height="16" rx="6" fill="#1b1b22"/><rect x="102" y="76" width="28" height="16" rx="6" fill="#1b1b22"/><path d="M98 82 h4" stroke="#1b1b22" stroke-width="3"/>`;
+  else if(!eq.head) s+=`<circle cx="87" cy="52" r="8" fill="rgba(255,255,255,.4)" stroke="${ink}" stroke-width="2.5"/><circle cx="113" cy="52" r="8" fill="rgba(255,255,255,.4)" stroke="${ink}" stroke-width="2.5"/><path d="M95 52 h10" stroke="${ink}" stroke-width="2.5"/>`;
+  // ears items
+  if(eq.ears==="headphones") s+=`<path d="M58 88 Q58 34 100 34 Q142 34 142 88" stroke="#333" stroke-width="8" fill="none"/><rect x="44" y="74" width="18" height="30" rx="8" fill="#333"/><rect x="138" y="74" width="18" height="30" rx="8" fill="#333"/>`;
+  if(eq.ears==="walkman") s+=`<path d="M58 88 Q58 38 100 38 Q142 38 142 88" stroke="#9AA0A8" stroke-width="4" fill="none"/><circle cx="56" cy="88" r="12" fill="#F28C28" stroke="#C86A12" stroke-width="2"/><circle cx="144" cy="88" r="12" fill="#F28C28" stroke="#C86A12" stroke-width="2"/>`;
+  // head items
+  if(eq.head==="party") s+=`<path d="M100 0 L80 50 L120 50 Z" fill="#FF6B9A" stroke="#C23D6A" stroke-width="2"/><path d="M90 26 L108 30 M86 38 L114 42" stroke="#FFE04A" stroke-width="4"/><circle cx="100" cy="2" r="6" fill="#FFE04A"/>`;
+  if(eq.head==="beanie") s+=`<path d="M62 64 Q100 14 138 64 Z" fill="#16996C"/><rect x="58" y="56" width="84" height="14" rx="7" fill="#0F7A55"/><circle cx="100" cy="26" r="9" fill="#fff" stroke="#ddd"/>`;
+  if(eq.head==="pirate") s+=`<path d="M50 62 Q100 0 150 62 Q100 48 50 62 Z" fill="#222" stroke="#000" stroke-width="2"/><circle cx="100" cy="40" r="6" fill="#fff"/><path d="M94 48 l12 0" stroke="#fff" stroke-width="2"/>`;
+  if(eq.head==="tinfoil") s+=`<path d="M62 64 L70 36 L82 46 L92 18 L102 40 L114 20 L124 42 L136 30 L138 64 Z" fill="#D5DAE1" stroke="#8D96A3" stroke-width="2"/><path d="M76 52 l8 -6 M110 34 l6 8" stroke="#fff" stroke-width="2"/>`;
+  if(eq.head==="gradcap") s+=`<rect x="72" y="40" width="56" height="20" rx="3" fill="#222"/><path d="M46 40 L100 20 L154 40 L100 60 Z" fill="#2b2b33" stroke="#000" stroke-width="2"/><path d="M100 40 L144 46 L144 70" stroke="#E7A919" stroke-width="3" fill="none"/><circle cx="144" cy="72" r="4" fill="#E7A919"/>`;
+  if(eq.head==="crown") s+=`<path d="M70 58 L72 30 L86 44 L100 24 L114 44 L128 30 L130 58 Z" fill="#E7A919" stroke="#A9780C" stroke-width="2"/><circle cx="100" cy="44" r="4" fill="#E8503F"/>`;
+  return `<svg viewBox="${vb||'0 -6 200 246'}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gradient the goat">${s}</svg>`;
+}
+
+// Small room objects, each drawn in a 56×56 box with the bottom at y=56.
+const ICONS = {
+  mixtape:`<rect x="4" y="20" width="48" height="32" rx="4" fill="#E8503F"/><rect x="10" y="24" width="36" height="9" rx="2" fill="#FFF4D6"/><circle cx="18" cy="42" r="6" fill="#2a2a33"/><circle cx="38" cy="42" r="6" fill="#2a2a33"/><circle cx="18" cy="42" r="2" fill="#fff"/><circle cx="38" cy="42" r="2" fill="#fff"/>`,
+  floppy:`<rect x="8" y="8" width="40" height="46" rx="3" fill="#2F5AAC"/><rect x="16" y="8" width="24" height="14" fill="#C8D0DA"/><rect x="31" y="10" width="5" height="10" fill="#2F5AAC"/><rect x="14" y="30" width="28" height="22" fill="#fff"/><path d="M18 37h20M18 43h14" stroke="#9AA" stroke-width="2"/>`,
+  pager:`<rect x="6" y="26" width="44" height="28" rx="6" fill="#2a2a33"/><rect x="12" y="31" width="27" height="11" rx="2" fill="#9BD39B"/><text x="14" y="40" font-size="8" font-family="monospace" fill="#244">07734</text><circle cx="44" cy="36" r="3" fill="#888"/><rect x="12" y="46" width="10" height="4" rx="2" fill="#777"/>`,
+  flip:`<rect x="16" y="30" width="24" height="26" rx="4" fill="#8A8FA0"/><rect x="16" y="6" width="24" height="26" rx="4" fill="#A6ABBA"/><rect x="20" y="10" width="16" height="14" rx="2" fill="#7FC8F8"/><g fill="#555"><circle cx="22" cy="38" r="1.6"/><circle cx="28" cy="38" r="1.6"/><circle cx="34" cy="38" r="1.6"/><circle cx="22" cy="44" r="1.6"/><circle cx="28" cy="44" r="1.6"/><circle cx="34" cy="44" r="1.6"/></g>`,
+  boombox:`<path d="M16 18 q12 -12 24 0" stroke="#555" stroke-width="3" fill="none"/><rect x="2" y="18" width="52" height="36" rx="5" fill="#3A3A44"/><circle cx="14" cy="38" r="10" fill="#222"/><circle cx="14" cy="38" r="4" fill="#666"/><circle cx="42" cy="38" r="10" fill="#222"/><circle cx="42" cy="38" r="4" fill="#666"/><rect x="22" y="24" width="12" height="8" fill="#ccc"/>`,
+  lava:`<path d="M18 54 L38 54 L34 44 L22 44 Z" fill="#555"/><path d="M22 44 L34 44 L40 14 Q28 4 16 14 Z" fill="#B04BD8"/><ellipse cx="28" cy="34" rx="5" ry="6" fill="#FFB347"/><ellipse cx="25" cy="20" rx="4" ry="4" fill="#FFB347"/><path d="M18 12 L38 12 L35 6 L21 6Z" fill="#555"/>`,
+  camera:`<rect x="6" y="18" width="44" height="34" rx="5" fill="#F2F2F2" stroke="#999" stroke-width="2"/><rect x="6" y="26" width="44" height="4" fill="#E8503F"/><rect x="6" y="30" width="44" height="3" fill="#FFE04A"/><rect x="6" y="33" width="44" height="3" fill="#16996C"/><circle cx="28" cy="40" r="9" fill="#333"/><circle cx="28" cy="40" r="4" fill="#5d7fb0"/><rect x="38" y="20" width="8" height="5" fill="#ddd"/>`,
+  cube:`<path d="M28 8 L50 18 L28 28 L6 18 Z" fill="#FFD23F" stroke="#222" stroke-width="1.5"/><path d="M6 18 L28 28 L28 54 L6 44 Z" fill="#16996C" stroke="#222" stroke-width="1.5"/><path d="M50 18 L28 28 L28 54 L50 44 Z" fill="#E8503F" stroke="#222" stroke-width="1.5"/><path d="M13 21 L13 47 M20 25 L20 51 M36 25 L36 51 M43 21 L43 47 M6 27 L28 37 L50 27 M6 35 L28 45 L50 35" stroke="#222" stroke-width="1"/>`,
+  egg:`<path d="M28 6 C44 6 50 30 48 40 C46 52 36 56 28 56 C20 56 10 52 8 40 C6 30 12 6 28 6Z" fill="#F7A8C4" stroke="#C46C8E" stroke-width="2"/><rect x="18" y="20" width="20" height="16" rx="3" fill="#B9E3C6"/><circle cx="24" cy="28" r="2" fill="#244"/><circle cx="32" cy="28" r="2" fill="#244"/><circle cx="20" cy="45" r="3" fill="#fff"/><circle cx="28" cy="47" r="3" fill="#fff"/><circle cx="36" cy="45" r="3" fill="#fff"/>`,
+  typewriter:`<rect x="14" y="4" width="28" height="22" fill="#fff" stroke="#bbb"/><path d="M18 10h20M18 15h16" stroke="#999" stroke-width="2"/><rect x="2" y="22" width="52" height="32" rx="6" fill="#2E6B5E"/><g fill="#eee"><circle cx="12" cy="40" r="3"/><circle cx="20" cy="40" r="3"/><circle cx="28" cy="40" r="3"/><circle cx="36" cy="40" r="3"/><circle cx="44" cy="40" r="3"/><rect x="16" y="46" width="24" height="4" rx="2"/></g>`,
+  vhs:`<rect x="2" y="24" width="52" height="30" rx="3" fill="#222"/><rect x="8" y="28" width="40" height="10" fill="#fff"/><text x="28" y="36" text-anchor="middle" font-size="7" font-family="monospace" fill="#222">LEC 1-19</text><rect x="12" y="42" width="10" height="7" fill="#555"/><rect x="34" y="42" width="10" height="7" fill="#555"/>`,
+  plant:`<path d="M16 38 L40 38 L36 56 L20 56 Z" fill="#C8693B"/><ellipse cx="20" cy="24" rx="7" ry="14" transform="rotate(-25 20 24)" fill="#2F9E5B"/><ellipse cx="36" cy="22" rx="7" ry="15" transform="rotate(25 36 22)" fill="#25844B"/><ellipse cx="28" cy="18" rx="6" ry="16" fill="#3BB56C"/>`,
+  mug:`<rect x="12" y="20" width="28" height="34" rx="4" fill="#fff" stroke="#999" stroke-width="2"/><path d="M40 28 q12 0 12 10 q0 10 -12 10" stroke="#999" stroke-width="4" fill="none"/><path d="M26 30 c-4 -4 -9 0 -5 5 l5 5 5 -5 c4 -5 -1 -9 -5 -5z" fill="#E8503F"/><text x="26" y="50" text-anchor="middle" font-size="7" font-family="monospace" fill="#333">MP</text>`,
+  duck:`<ellipse cx="26" cy="44" rx="20" ry="12" fill="#FFD23F"/><circle cx="36" cy="26" r="11" fill="#FFD23F"/><path d="M45 26 l9 3 -9 3z" fill="#F28C28"/><circle cx="39" cy="23" r="2" fill="#222"/>`,
+  coal:`<path d="M6 54 l6 -14 10 -4 8 6 6 -6 10 4 4 14z" fill="#2b2b2b"/><path d="M14 46 l4 -3" stroke="#555" stroke-width="2"/>`,
+  clips:`<path d="M14 50 V20 a6 6 0 0 1 12 0 V44 a4 4 0 0 1 -8 0 V24" stroke="#A9B0BA" stroke-width="2.5" fill="none"/><path d="M32 52 V28 a6 6 0 0 1 12 0 V46 a4 4 0 0 1 -8 0 V30" stroke="#C4CAD2" stroke-width="2.5" fill="none" transform="rotate(12 38 40)"/>`,
+  finger:`<path d="M14 56 L14 30 Q14 24 20 24 L22 24 L22 6 Q22 2 27 2 Q32 2 32 6 L32 24 L40 24 Q46 24 46 30 L46 56 Z" fill="#2F6FD6" stroke="#1E4FA3" stroke-width="2"/><text x="30" y="44" text-anchor="middle" font-size="10" font-family="Bungee,Arial Black,sans-serif" fill="#fff">#1</text>`,
+  crystal:`<path d="M14 56 L42 56 L38 46 L18 46 Z" fill="#7a5230"/><circle cx="28" cy="28" r="18" fill="#B48CF0" opacity=".85"/><circle cx="22" cy="22" r="5" fill="#fff" opacity=".7"/><path d="M34 30 l2 4 4 2 -4 2 -2 4 -2 -4 -4 -2 4 -2z" fill="#fff"/>`,
+  gpu:`<rect x="2" y="26" width="52" height="26" rx="3" fill="#3A3F4A"/><circle cx="16" cy="39" r="9" fill="#222"/><circle cx="40" cy="39" r="9" fill="#222"/><path d="M16 31 v16 M8 39 h16 M40 31 v16 M32 39 h16" stroke="#555" stroke-width="2"/><rect x="6" y="52" width="30" height="4" fill="#C9A227"/>`,
+  alphafold:`<rect x="18" y="50" width="20" height="6" fill="#555"/><path d="M28 50 C10 44 46 38 28 32 C10 26 46 20 28 14 C16 10 34 4 28 2" stroke="#16996C" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M28 50 C46 44 10 38 28 32" stroke="#E8503F" stroke-width="4" fill="none" stroke-linecap="round"/>`,
+  disco:`<line x1="28" y1="0" x2="28" y2="12" stroke="#666" stroke-width="2"/><circle cx="28" cy="32" r="20" fill="#C9D1DB" stroke="#8A94A3" stroke-width="1.5"/><path d="M8 32 h40 M12 22 h32 M12 42 h32 M28 12 v40 M18 15 v34 M38 15 v34" stroke="#8A94A3" stroke-width="1"/><rect x="18" y="22" width="5" height="5" fill="#fff"/>`,
+  beanbag:`<path d="M4 56 C2 30 14 14 30 14 C46 14 56 30 54 56 Z" fill="#5B7BD6" stroke="#3E5BB0" stroke-width="2"/><path d="M14 30 q14 10 30 0" stroke="#3E5BB0" stroke-width="2" fill="none"/>`,
+  fridge:`<rect x="6" y="0" width="44" height="56" rx="4" fill="#E8EEF4" stroke="#A0AAB6" stroke-width="2"/><path d="M6 20 h44" stroke="#A0AAB6" stroke-width="2"/><rect x="40" y="6" width="3" height="10" fill="#A0AAB6"/><rect x="40" y="26" width="3" height="14" fill="#A0AAB6"/><circle cx="18" cy="32" r="4" fill="#E8503F"/><rect x="24" y="38" width="8" height="6" fill="#FFE04A"/>`,
+  poster:`<rect x="0" y="0" width="56" height="56" fill="#18233F"/><text x="28" y="18" text-anchor="middle" font-size="7.5" font-family="Bungee,Arial Black,sans-serif" fill="#FFE04A">ALL MODELS</text><text x="28" y="28" text-anchor="middle" font-size="7.5" font-family="Bungee,Arial Black,sans-serif" fill="#FFE04A">ARE WRONG</text><text x="28" y="40" text-anchor="middle" font-size="5" font-family="sans-serif" fill="#fff">some are useful</text>`,
+  cert:`<rect x="0" y="6" width="56" height="44" fill="#7a5230"/><rect x="4" y="10" width="48" height="36" fill="#FFF8E6"/><text x="28" y="22" text-anchor="middle" font-size="6" font-family="Bungee,Arial Black,sans-serif" fill="#333">TURING TEST</text><text x="28" y="31" text-anchor="middle" font-size="6" font-family="serif" fill="#333">passed*</text><text x="28" y="41" text-anchor="middle" font-size="4" font-family="sans-serif" fill="#777">*probably</text><circle cx="44" cy="40" r="4" fill="#E8503F"/>`,
+  sticker:`<circle cx="28" cy="28" r="22" fill="#E8503F" stroke="#fff" stroke-width="3"/><text x="28" y="27" text-anchor="middle" font-size="7.5" font-family="Bungee,Arial Black,sans-serif" fill="#fff">HUMAN</text><text x="28" y="36" text-anchor="middle" font-size="7.5" font-family="Bungee,Arial Black,sans-serif" fill="#fff">MADE</text>`,
+  lights:`<path d="M2 14 Q14 26 28 14 Q42 26 54 14" stroke="#555" stroke-width="1.5" fill="none"/><circle cx="10" cy="20" r="4" fill="#FFE04A"/><circle cx="22" cy="21" r="4" fill="#E8503F"/><circle cx="34" cy="21" r="4" fill="#16996C"/><circle cx="46" cy="20" r="4" fill="#2F6FD6"/>`,
+  ctx:`<rect x="4" y="12" width="48" height="36" rx="4" fill="#18233F"/><rect x="9" y="17" width="10" height="26" fill="#FFE04A"/><rect x="21" y="17" width="10" height="26" fill="#FFE04A"/><rect x="33" y="17" width="10" height="26" fill="#FFE04A" opacity=".5"/><text x="28" y="56" text-anchor="middle" font-size="7" font-family="monospace" fill="#555">+1 HINT</text>`,
+  centaur:`<rect x="10" y="4" width="36" height="50" rx="5" fill="#fff" stroke="#18233F" stroke-width="2"/><text x="28" y="26" text-anchor="middle" font-size="12" font-family="Bungee,Arial Black,sans-serif" fill="#18233F">50</text><text x="28" y="40" text-anchor="middle" font-size="12" font-family="Bungee,Arial Black,sans-serif" fill="#E8503F">50</text>`
+};
+function iconSVG(k, h){ return `<svg viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg" style="height:${h||64}px;width:auto" aria-hidden="true">${ICONS[k]||''}</svg>`; }
+
+// Window views for "Places"
+const VIEWS = {
+  quad:`<rect width="200" height="150" fill="#A9D3F5"/><rect y="104" width="200" height="46" fill="#7CC36E"/><rect x="110" y="56" width="80" height="50" fill="#B5553A"/><path d="M106 58 L150 30 L194 58Z" fill="#8E3F2B"/><g fill="#F3E6C8"><rect x="120" y="68" width="10" height="14"/><rect x="140" y="68" width="10" height="14"/><rect x="160" y="68" width="10" height="14"/></g><circle cx="50" cy="80" r="26" fill="#3F9A55"/><rect x="46" y="92" width="8" height="22" fill="#6B4A2E"/><circle cx="170" cy="22" r="11" fill="#FFE27A"/>`,
+  library:`<rect width="200" height="150" fill="#5A3A22"/>${[0,1,2,3].map(r=>`<rect x="0" y="${r*37+30}" width="200" height="6" fill="#3E2716"/>`+Array.from({length:16},(_,i)=>`<rect x="${i*12+4}" y="${r*37+6}" width="9" height="${18+((i*7+r)%6)}" fill="${['#C0392B','#2F6FD6','#E7A919','#16996C','#8E44AD','#ECF0F1'][(i+r)%6]}"/>`).join('')).join('')}`,
+  servers:`<rect width="200" height="150" fill="#0E1A33"/>${[0,1,2,3].map(i=>`<rect x="${i*50+8}" y="10" width="38" height="134" fill="#1F2D4D" stroke="#33466F"/>`+Array.from({length:9},(_,j)=>`<rect x="${i*50+12}" y="${j*14+16}" width="30" height="9" fill="#26385E"/><circle cx="${i*50+38}" cy="${j*14+20}" r="2" fill="${(i+j)%3?'#3DD6A0':'#FFD83A'}"/>`).join('')).join('')}`,
+  factory:`<rect width="200" height="150" fill="#F6A15A"/><circle cx="160" cy="40" r="18" fill="#FFE0A3"/><rect y="100" width="200" height="50" fill="#5B4636"/><rect x="20" y="70" width="70" height="40" fill="#6E5543"/><rect x="40" y="30" width="12" height="44" fill="#4A3A2E"/><rect x="66" y="40" width="12" height="34" fill="#4A3A2E"/><circle cx="46" cy="22" r="10" fill="#9A8F86" opacity=".8"/><circle cx="56" cy="12" r="12" fill="#B0A69E" opacity=".7"/><circle cx="74" cy="30" r="8" fill="#9A8F86" opacity=".8"/><rect x="120" y="80" width="60" height="30" fill="#6E5543"/>`,
+  goboard:`<rect width="200" height="150" fill="#DDB36B"/>${Array.from({length:10},(_,i)=>`<path d="M${10+i*20} 5 V145 M5 ${10+i*15} H195" stroke="#6B4A1E" stroke-width="1"/>`).join('')}<circle cx="70" cy="55" r="8" fill="#111"/><circle cx="90" cy="70" r="8" fill="#fff"/><circle cx="110" cy="55" r="8" fill="#111"/><circle cx="130" cy="85" r="8" fill="#fff"/><circle cx="90" cy="100" r="8" fill="#111"/>`,
+  space:`<rect width="200" height="150" fill="#0B0F2A"/>${Array.from({length:30},(_,i)=>`<circle cx="${(i*67)%200}" cy="${(i*41)%150}" r="${i%4?1:1.8}" fill="#fff"/>`).join('')}<circle cx="140" cy="90" r="30" fill="#E8503F"/><ellipse cx="140" cy="90" rx="48" ry="9" fill="none" stroke="#FFE04A" stroke-width="3"/>`
+};
+
+// Room slot layout: small items fill these slots in purchase order.
+const SMALL_SLOTS = [
+  // desk surface (y = bottom)
+  [452,300],[502,300],[552,300],[602,300],[652,300],[702,300],[744,300],
+  // shelves
+  [566,124],[630,124],[694,124],[566,200],[630,200],[694,200],
+  // window sill
+  [44,226],[104,226],[164,226],
+  [476,446],[530,446],[584,446]
+];
+function roomSVG(){
+  const view = VIEWS[S.place] || VIEWS.quad;
+  const shown = ITEMS.filter(it=>it.kind==='room' && owns(it.id) && !S.hidden[it.id]);
+  let back='', front='';
+  let small = 0;
+  shown.forEach(it=>{
+    if(it.zone==='small'){
+      const sl = SMALL_SLOTS[small++]; if(!sl) return;
+      const sc = it.sc||0.8, sz=56*sc;
+      let extra='';
+      if(it.stack){ const n=Math.min(S.stacks[it.id]||0,4); for(let k=1;k<n;k++) extra+=`<g transform="translate(${sl[0]+k*6-sz/2},${sl[1]-sz-k*7}) scale(${sc})">${ICONS[it.icon]}</g>`; }
+      front+=`<g transform="translate(${sl[0]-sz/2},${sl[1]-sz}) scale(${sc})">${ICONS[it.icon]}</g>${extra}`;
+      if(it.stack && (S.stacks[it.id]||0)>1) front+=`<text x="${sl[0]+12}" y="${sl[1]-sz-4}" font-size="12" font-family="monospace" font-weight="700" fill="#18233F">×${S.stacks[it.id]}</text>`;
+    } else if(it.zone==='floorL') back+=`<g transform="translate(40,330) scale(2.1)">${ICONS[it.icon]}</g>`;
+    else if(it.zone==='floorM') back+=`<g transform="translate(178,372) scale(1.25)">${ICONS[it.icon]}</g>`;
+    else if(it.zone==='fridge') back+=`<g transform="translate(240,346) scale(1.6)">${ICONS[it.icon]}</g>`;
+    else if(it.zone==='wall1') back+=`<g transform="translate(270,46) scale(1.9)">${ICONS[it.icon]}</g>`;
+    else if(it.zone==='wall2') back+=`<g transform="translate(400,70) scale(1.4)">${ICONS[it.icon]}</g>`;
+    else if(it.zone==='sticker') back+=`<g transform="translate(350,110) scale(.6)">${ICONS[it.icon]}</g>`;
+    else if(it.zone==='ceiling') back+=`<g transform="translate(470,0) scale(1.3)">${ICONS[it.icon]}</g>`;
+    else if(it.zone==='lights') back+=Array.from({length:14},(_,i)=>`<g transform="translate(${i*57},0)">${ICONS.lights}</g>`).join('');
+  });
+  const wall = `<rect width="800" height="320" fill="#DCE6F2"/><rect y="300" width="800" height="20" fill="#C7D3E3"/>`;
+  const floor = `<rect y="320" width="800" height="140" fill="#C99E6E"/>${Array.from({length:8},(_,i)=>`<path d="M0 ${336+i*16} H800" stroke="#B48A5C" stroke-width="2"/>`).join('')}`;
+  const win = `<g transform="translate(34,40)"><rect x="-8" y="-8" width="216" height="166" fill="#fff" stroke="#9AA7B8" stroke-width="3"/><svg width="200" height="150" viewBox="0 0 200 150">${view}</svg><path d="M100 0 V150 M0 75 H200" stroke="#fff" stroke-width="6"/></g><rect x="22" y="222" width="240" height="12" fill="#B9C5D6"/>`;
+  const shelves = `<rect x="540" y="124" width="190" height="8" fill="#8B5E3C"/><rect x="540" y="200" width="190" height="8" fill="#8B5E3C"/>`;
+  const desk = `<rect x="430" y="300" width="350" height="14" fill="#7A5232"/><rect x="440" y="314" width="14" height="126" fill="#6A4529"/><rect x="756" y="314" width="14" height="126" fill="#6A4529"/><rect x="600" y="314" width="150" height="60" fill="#8B5E3C"/>`;
+  const goat = `<g transform="translate(300,236) scale(.9)">${goatSVG(S.equip).replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'')}</g>`;
+  return `<svg class="roomsvg" viewBox="0 0 800 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Gradient's dorm room">${wall}${floor}${win}${shelves}${desk}${back}${goat}${front}</svg>`;
+}
+// ===== SHOP CATALOGUE =====
+// kind: wear (slot), room (zone), place, power, stack (room item bought many times)
+const ITEMS = [
+ // Wear
+ {id:"party",n:"Party hat",cat:"wear",p:5,kind:"wear",slot:"head",d:"For when you finally get backprop."},
+ {id:"bowtie",n:"Bow tie",cat:"wear",p:8,kind:"wear",slot:"neck",d:"Very office hours."},
+ {id:"beanie",n:"Beanie",cat:"wear",p:12,kind:"wear",slot:"head",d:"Maine winters are not a model. They are real."},
+ {id:"shades",n:"Sunglasses",cat:"wear",p:14,kind:"wear",slot:"face",d:"Low temperature. Very cool."},
+ {id:"goggles",n:"Lab goggles",cat:"wear",p:20,kind:"wear",slot:"face",d:"For running RCTs safely."},
+ {id:"banana",n:"Banana costume",cat:"wear",p:25,kind:"wear",slot:"body",d:"A tribute to Bob, the banana mechanic."},
+ {id:"pirate",n:"Pirate hat",cat:"wear",p:30,kind:"wear",slot:"head",d:"Arr, the data wall be near."},
+ {id:"hoodie",n:"Econ hoodie",cat:"wear",p:35,kind:"wear",slot:"body",d:"Marginally warmer than average."},
+ {id:"cape",n:"Superhero cape",cat:"wear",p:40,kind:"wear",slot:"body",d:"Lifts the left tail."},
+ {id:"tinfoil",n:"Tinfoil hat",cat:"wear",p:50,kind:"wear",slot:"head",d:"AGI is coming. Probably. Maybe."},
+ {id:"headphones",n:"Noise-cancelling headphones",cat:"dorm",p:70,kind:"wear",slot:"ears",d:"Blocks out System 1 chatter."},
+ {id:"gradcap",n:"Graduation cap",cat:"wear",p:120,kind:"wear",slot:"head",d:"Earned, not hallucinated."},
+ {id:"crown",n:"Superintelligence crown",cat:"jokes",p:300,kind:"wear",slot:"head",d:"For the goat who has surpassed humans on most tasks."},
+ // Retro tech
+ {id:"walkman",n:"Cassette player (Walkman-style)",cat:"retro",p:60,kind:"wear",slot:"ears",d:"Foam headphones and a belt-clip player. Gradient wears it."},
+ {id:"mixtape",n:"Mixtape: Backprop Bangers Vol. 1",cat:"retro",p:15,kind:"room",zone:"small",icon:"mixtape",d:"Track 1: 'Chain Rule (Extended Mix)'."},
+ {id:"floppy",n:"Floppy disk",cat:"retro",p:10,kind:"room",zone:"small",icon:"floppy",d:"1.44 MB. Holds about 0.00000001 of GPT-4."},
+ {id:"vhs",n:"VHS tape",cat:"retro",p:15,kind:"room",zone:"small",icon:"vhs",d:"Labeled 'Lectures 1–19'. Be kind, rewind."},
+ {id:"pager",n:"Pager",cat:"retro",p:25,kind:"room",zone:"small",icon:"pager",d:"07734. Turn it upside down."},
+ {id:"cube",n:"Puzzle cube",cat:"retro",p:20,kind:"room",zone:"small",icon:"cube",d:"Solvable by gradient descent? Try it."},
+ {id:"lava",n:"Lava lamp",cat:"retro",p:30,kind:"room",zone:"small",icon:"lava",d:"Stochastic blobs, no loss function."},
+ {id:"egg",n:"Pocket pet egg",cat:"retro",p:35,kind:"room",zone:"small",icon:"egg",d:"An AI companion, 1997 edition."},
+ {id:"flip",n:"Flip phone",cat:"retro",p:40,kind:"room",zone:"small",icon:"flip",d:"Context window: 160 characters."},
+ {id:"camera",n:"Instant camera",cat:"retro",p:45,kind:"room",zone:"small",icon:"camera",d:"Every photo 100% human-made."},
+ {id:"boombox",n:"Boombox",cat:"retro",p:80,kind:"room",zone:"floorM",icon:"boombox",d:"Plays the mixtape loudly."},
+ {id:"typewriter",n:"Typewriter",cat:"retro",p:90,kind:"room",zone:"small",icon:"typewriter",d:"Zero cognitive offloading.",sc:1},
+ {id:"disco",n:"Disco ball",cat:"retro",p:110,kind:"room",zone:"ceiling",icon:"disco",d:"High temperature setting."},
+ // Dorm & study
+ {id:"plant",n:"Desk plant",cat:"dorm",p:10,kind:"room",zone:"small",icon:"plant",d:"Grows without training data."},
+ {id:"mug",n:"Mug: I ♥ marginal product",cat:"dorm",p:12,kind:"room",zone:"small",icon:"mug",d:"Each extra coffee adds a bit less."},
+ {id:"duck",n:"Rubber duck",cat:"dorm",p:8,kind:"room",zone:"small",icon:"duck",d:"Explain your code to it. It's very patient."},
+ {id:"poster",n:"Poster: All models are wrong",cat:"dorm",p:25,kind:"room",zone:"wall1",icon:"poster",d:"Some are useful."},
+ {id:"lights",n:"String lights",cat:"dorm",p:30,kind:"room",zone:"lights",icon:"lights",d:"Instant dorm ambience."},
+ {id:"beanbag",n:"Bean bag",cat:"dorm",p:50,kind:"room",zone:"floorL",icon:"beanbag",d:"For long reading responses."},
+ {id:"fridge",n:"Mini fridge",cat:"dorm",p:90,kind:"room",zone:"fridge",icon:"fridge",d:"Stocked for finals week."},
+ // In-jokes
+ {id:"coal",n:"Jevons's lump of coal",cat:"jokes",p:5,kind:"room",zone:"small",icon:"coal",stack:true,d:"Every one you buy makes the next one pricier. Demand responds."},
+ {id:"clips",n:"Paperclip",cat:"jokes",p:1,kind:"room",zone:"small",icon:"clips",stack:true,d:"Collect 100 to earn the Paperclip Maximizer badge."},
+ {id:"finger",n:"Invisible-hand foam finger",cat:"jokes",p:40,kind:"room",zone:"small",icon:"finger",d:"Go markets!"},
+ {id:"crystal",n:"Kurzweil crystal ball",cat:"jokes",p:75,kind:"room",zone:"small",icon:"crystal",d:"Shows an exponential curve. Always."},
+ {id:"cert",n:"Turing test certificate",cat:"jokes",p:60,kind:"room",zone:"wall2",icon:"cert",d:"Passed.* (*probably)"},
+ {id:"sticker",n:"'Human-made' sticker",cat:"jokes",p:30,kind:"room",zone:"sticker",icon:"sticker",d:"Premium market segment."},
+ {id:"alphafold",n:"AlphaFold protein sculpture",cat:"jokes",p:150,kind:"room",zone:"small",icon:"alphafold",d:"We know its shape. Not why."},
+ {id:"gpu",n:"GPU",cat:"jokes",p:200,kind:"room",zone:"small",icon:"gpu",stack:true,d:"Price rises 25% with every purchase. Supply is tight."},
+ // Power-ups
+ {id:"ctx",n:"Bigger context window",cat:"power",p:40,kind:"power",icon:"ctx",d:"+1 hint in every round. Buy twice for +2."},
+ {id:"centaur",n:"Centaur card",cat:"power",p:20,kind:"power",icon:"centaur",d:"Hand one question to the goat: removes half the wrong answers. Single use."},
+ // Places
+ {id:"library",n:"Library view",cat:"places",p:60,kind:"place",d:"Hushed and productive."},
+ {id:"servers",n:"Server farm view",cat:"places",p:120,kind:"place",d:"Blinking lights, humming fans."},
+ {id:"factory",n:"Steam-engine factory view",cat:"places",p:120,kind:"place",d:"1865. Burning more coal than ever."},
+ {id:"goboard",n:"Go board view",cat:"places",p:150,kind:"place",d:"Move 37 energy."},
+ {id:"space",n:"Outer space view",cat:"places",p:250,kind:"place",d:"Superintelligence's summer home."}
+];
+const CATS = [["wear","Wear"],["retro","Retro tech"],["dorm","Dorm & study"],["jokes","Econ & AI in-jokes"],["power","Power-ups"],["places","Places"]];
+
+// ===== STATE =====
+const KEY = "gradientDescent_v1";
+const LV = {rem:{n:"Remember",tag:"Definitions & facts",a:2,b:1},app:{n:"Apply",tag:"New examples",a:4,b:2},ana:{n:"Analyze",tag:"Quiz-style",a:6,b:3}};
+const ALL_L = Array.from({length:19},(_,i)=>i+1);
+function fresh(){ return {tokens:15,owned:{},equip:{head:null,face:null,ears:null,neck:null,body:null},hidden:{},place:"quad",items:{},lects:ALL_L.slice(),sound:true,feed:{day:"",n:0},saveFor:null,ctx:0,centaur:0,stacks:{coal:0,gpu:0,clips:0},last:[],badges:{},level:"rem",sel:{},rounds:0}; }
+let S = fresh();
+try{ const raw = localStorage.getItem(KEY); if(raw){ S = Object.assign(fresh(), JSON.parse(raw)); } }catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+// ===== DERIVED CONTENT =====
+const TERMS = TERMS_RAW.map(r=>({id:r[0],n:r[1],full:r[2],d:r[3],L:r[4],g:r[5],key:"t:"+r[0]}));
+const TERM = Object.fromEntries(TERMS.map(t=>[t.id,t]));
+const SCEN = SCEN_RAW.map((r,i)=>({tid:r[0],text:r[1],lvl:r[2],L:TERM[r[0]].L,key:"s:"+i}));
+const TRU = TRUTHS.map((r,i)=>({c:r[0],f:r[1],why:r[2],L:r[3],key:"h:"+i}));
+const STA = STATS.map((r,i)=>({q:r[0],a:r[1],min:r[2],max:r[3],step:r[4],u:r[5],L:r[6],note:r[7],key:"n:"+i}));
+const STU = STUDIES.map((r,i)=>({who:r[0],f:r[1],L:r[2],key:"y:"+i}));
+const BKT = BUCKETS.map(b=>({...b,items:b.i.map((x,j)=>({text:x[0],b:x[1],key:"b:"+b.id+":"+j,L:b.L}))}));
+// every trackable item, for readiness meters
+const ALLITEMS = [...TERMS,...SCEN,...TRU,...STA,...STU,...BKT.flatMap(b=>b.items)];
+
+// ===== HELPERS =====
+const $ = s=>document.querySelector(s);
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle = a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+const pick = a=>a[Math.floor(Math.random()*a.length)];
+const today = ()=>new Date().toISOString().slice(0,10);
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function st(key){ return S.items[key]||{ok:0,miss:0}; }
+function mark(key, ok){ const s=S.items[key]||{ok:0,miss:0}; ok?s.ok++:s.miss++; S.items[key]=s; }
+function weightedPick(arr, n){
+  const pool = arr.map(x=>{const s=st(x.key);const seen=s.ok+s.miss>0;return {x,w:1+(seen?0:2)+Math.max(0,s.miss-s.ok)*3};});
+  const out=[];
+  while(out.length<n && pool.length){ const tot=pool.reduce((a,p)=>a+p.w,0); let r=Math.random()*tot; let i=0; for(;i<pool.length;i++){ r-=pool[i].w; if(r<=0)break;} i=Math.min(i,pool.length-1); out.push(pool[i].x); pool.splice(i,1); }
+  return out;
+}
+function lchips(L){ return L.map(l=>`<span class="chip">L${l}</span>`).join(" "); }
+function owns(id){ return !!S.owned[id]; }
+let toastT;
+function toast(msg, ms){ const t=$("#toast"); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true, ms||2600); }
+function renderTok(bump){ $("#tokn").textContent=S.tokens; if(bump){ const t=$("#tok"); t.classList.remove("bump"); void t.offsetWidth; t.classList.add("bump"); } }
+function addTokens(n){ if(n<=0)return; S.tokens+=n; if(G) G.earned+=n; save(); renderTok(true); beep("coin"); }
+
+// sound
+let AC=null;
+function beep(kind){
+  if(!S.sound) return;
+  try{
+    AC = AC || new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(), g=AC.createGain(); o.connect(g); g.connect(AC.destination);
+    const t=AC.currentTime;
+    const m={pop:[520,180,.08,"square"],good:[660,990,.18,"triangle"],bad:[220,140,.25,"sawtooth"],coin:[880,1320,.12,"sine"],trap:[300,90,.5,"sawtooth"]}[kind]||[440,440,.1,"sine"];
+    o.type=m[3]; o.frequency.setValueAtTime(m[0],t); o.frequency.exponentialRampToValueAtTime(m[1],t+m[2]);
+    g.gain.setValueAtTime(.06,t); g.gain.exponentialRampToValueAtTime(.0001,t+m[2]+.05);
+    o.start(t); o.stop(t+m[2]+.06);
+  }catch(e){}
+}
+
+// readiness per lecture: share of tagged items answered correctly at least once
+function readiness(l){ const xs=ALLITEMS.filter(x=>x.L.includes(l)); if(!xs.length) return 0; return xs.filter(x=>st(x.key).ok>0).length/xs.length; }
+function unitReady(u){ const ls=[]; for(let l=u.from;l<=u.to;l++) ls.push(readiness(l)); return ls.reduce((a,b)=>a+b,0)/ls.length; }
+
+const QUIPS_OK=["Downhill we go!","Loss minimized.","The gradient approves.","That's a global minimum.","Marginal product: excellent.","Correct, and not a hallucination."];
+const QUIPS_NO=["Local minimum. Try another step.","Hmm, sounds plausible. Isn't.","My sycophancy module says 'great try!'","Even reasoning models backtrack."];
+const IDLE=["Feed me a token? I'll give it back. Mostly.","Assume this is the worst version of this game you will ever play.","All models are wrong. Some are useful.","I'm a goat, not a GOAT. Yet.","Tip: missed questions come back until you get them right twice.","Ignorance is preferable to error. —Jefferson (L12)"];
+
+// ===== NAVIGATION =====
+let SCREEN="home", CUR_UNIT=null, G=null;
+function go(screen){
+  if(G && G.cleanup && screen!=="play"){ G.cleanup(); G=null; }
+  SCREEN=screen;
+  document.querySelectorAll("section[data-screen]").forEach(s=>s.hidden = s.dataset.screen!==screen);
+  document.querySelectorAll("#nav button").forEach(b=>b.setAttribute("aria-current", b.dataset.go===screen?"true":"false"));
+  ({home:renderHome,unit:renderUnit,shop:renderShop,room:renderRoom,gloss:renderGloss,settings:renderSettings}[screen]||(()=>{}))();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>go(b.dataset.go));
+$("#logo").onclick=()=>go("home");
+
+// ===== HOME =====
+function unitIcon(u){
+  const ic={server:`<rect x="6" y="5" width="20" height="7" rx="2"/><rect x="6" y="14" width="20" height="7" rx="2"/><rect x="6" y="23" width="20" height="5" rx="2"/>`,column:`<path d="M4 9 L16 3 L28 9Z"/><rect x="7" y="11" width="3" height="14"/><rect x="14.5" y="11" width="3" height="14"/><rect x="22" y="11" width="3" height="14"/><rect x="4" y="26" width="24" height="3"/>`,stall:`<path d="M3 11 L6 4 H26 L29 11Z"/><rect x="6" y="13" width="20" height="14"/><rect x="12" y="18" width="8" height="9" fill="#fff"/>`}[u.icon];
+  return `<span class="ubadge" style="background:${u.color}"><svg viewBox="0 0 32 32" width="28" height="28" fill="#fff" aria-hidden="true">${ic}</svg></span>`;
+}
+function renderHome(){
+  const sf = S.saveFor && ITEMS.find(i=>i.id===S.saveFor);
+  const fedLeft = 5 - (S.feed.day===today()? S.feed.n : 0);
+  $("#s-home").innerHTML = `
+  <div class="hero">
+    <div class="card goatcard">
+      <div class="goat-bob" id="goatbox">${goatSVG(S.equip)}</div>
+      <div class="bubble" id="bubble">${esc(pick(IDLE))}</div>
+      <button class="btn sm" id="feed" ${fedLeft<=0?"disabled":""}>Feed Gradient a snack (${fedLeft} left today)</button>
+      ${sf?`<div class="savebar"><span>Saving for <b>${esc(sf.n)}</b> · <span class="mono">${Math.min(S.tokens,priceOf(sf))}/${priceOf(sf)}</span></span><div class="meter"><b style="width:${Math.min(100,100*S.tokens/priceOf(sf))}%"></b></div></div>`:""}
+    </div>
+    <div class="intro">
+      <div class="eyebrow">Econ 2225 · AI and the Economy · Fall 2026</div>
+      <div class="title-big">GRADIENT<br><span>DESCENT</span></div>
+      <p>A study arcade for the course. Pick a building, choose your lectures and level, and play. Every answer comes with a short explanation and the lecture it's from. Earn tokens, then spend them on Gradient's wardrobe and dorm room.</p>
+      <div class="row"><span class="chip">${TERMS.length} glossary terms</span><span class="chip">${SCEN.length} scenarios</span><span class="chip">${TRU.length} hallucination hunts</span><span class="chip">${STA.length} stats</span><span class="chip">${BKT.length} sorting sets</span></div>
+    </div>
+  </div>
+  <div class="units">${UNITS.map(u=>{const r=unitReady(u);return `
+    <button class="unit" data-u="${u.id}">
+      <div class="row">${unitIcon(u)}<div style="min-width:0"><h3>${esc(u.name)}</h3><div class="muted" style="font-size:14px">${esc(u.sub)}</div></div></div>
+      <div class="row" style="justify-content:space-between"><span class="chip">${esc(u.quiz)}</span><span class="mono" style="font-size:13px">${Math.round(r*100)}% ready</span></div>
+      <div class="lbars">${Array.from({length:u.to-u.from+1},(_,k)=>{const l=u.from+k;return `<div title="Lecture ${l}: ${esc(LECTURES[l])}"><span><b style="height:${Math.round(readiness(l)*100)}%"></b></span><em>${l}</em></div>`}).join("")}</div>
+    </button>`}).join("")}</div>
+  <div class="row">
+    <button class="btn pri" id="bossall">Cumulative Final Boss (all unlocked lectures)</button>
+    <button class="btn" id="gotogloss">Browse the glossary</button>
+  </div>`;
+  document.querySelectorAll(".unit").forEach(b=>b.onclick=()=>{CUR_UNIT=UNITS.find(u=>u.id==b.dataset.u);go("unit");});
+  $("#bossall").onclick=()=>startGame("boss",null);
+  $("#gotogloss").onclick=()=>go("gloss");
+  $("#feed").onclick=()=>{
+    if(S.feed.day!==today()) S.feed={day:today(),n:0};
+    if(S.feed.n>=5) return;
+    S.feed.n++; addTokens(1);
+    const gb=$("#goatbox"); gb.classList.remove("goat-hop"); void gb.offsetWidth; gb.classList.add("goat-hop");
+    $("#bubble").textContent = pick(["Nom. Here's a token back.","Delicious tokens.","Thanks! +1 token.","Mmm, tastes like synthetic data."]);
+    const left=5-S.feed.n; $("#feed").textContent=`Feed Gradient a snack (${left} left today)`; $("#feed").disabled=left<=0;
+  };
+}
+
+// ===== UNIT =====
+const GAMES = [
+ {id:"pop",n:"Term Pop",icon:"🎈",bg:"#FFB3C7",d:"Pop the balloon with the right term. Purple striped ones are hallucinated."},
+ {id:"bucket",n:"Bucket Sort",icon:"🪣",bg:"#B9E3C6",d:"Catch each falling example in the right bucket."},
+ {id:"memory",n:"Memory Match",icon:"🃏",bg:"#BFD7F7",d:"Flip cards to pair terms with definitions, or studies with findings."},
+ {id:"truth",n:"Two Truths & a Hallucination",icon:"🕵️",bg:"#E4D3FF",d:"Three confident claims. One is made up. Find it."},
+ {id:"stat",n:"Guess the Stat",icon:"🎯",bg:"#FFE7A3",d:"Slide to the number from the lectures. Closer means more tokens."},
+ {id:"boss",n:"Final Boss",icon:"👾",bg:"#FFE04A",d:"Timed, mixed, quiz-style. No hints. See how ready you are.",boss:true}
+];
+function unitSel(u){ const k="u"+u.id; let sel=S.sel[k]; if(!sel){ sel=[]; for(let l=u.from;l<=u.to;l++) sel.push(l); } return sel.filter(l=>S.lects.includes(l)); }
+function renderUnit(){
+  const u=CUR_UNIT; if(!u){ go("home"); return; }
+  const sel=unitSel(u);
+  $("#s-unit").innerHTML=`
+  <div class="uhead">${unitIcon(u)}<div style="min-width:0"><div class="eyebrow">${esc(u.quiz)}</div><h2 style="font-family:var(--f-display);font-weight:400;font-size:26px">${esc(u.name)}</h2><div class="muted">${esc(u.sub)}</div></div>
+    <button class="btn ghost sm" id="back" style="margin-left:auto">← Campus</button></div>
+  <div class="soft" style="display:grid;gap:14px">
+    <div><div class="eyebrow" style="margin-bottom:6px">Level</div>
+      <div class="seg" role="group" aria-label="Level">${Object.entries(LV).map(([k,v])=>`<button data-lv="${k}" aria-pressed="${S.level===k}">${v.n}<small>${v.tag} · ${v.a} tokens</small></button>`).join("")}</div></div>
+    <div><div class="eyebrow" style="margin-bottom:6px">Lectures in this round</div>
+      <div class="lchips">${Array.from({length:u.to-u.from+1},(_,k)=>{const l=u.from+k;const locked=!S.lects.includes(l);return `<button class="lchip" data-l="${l}" aria-pressed="${sel.includes(l)}" ${locked?"disabled title='Locked in Settings'":""} title="${esc(LECTURES[l])}">L${l} ${esc(LECTURES[l])}</button>`}).join("")}</div></div>
+  </div>
+  <div class="games">${GAMES.map(g=>`<button class="game ${g.boss?'boss':''}" data-g="${g.id}"><span class="gi" style="background:${g.bg}">${g.icon}</span><span style="min-width:0"><h3>${g.n}</h3><p>${g.d}</p></span></button>`).join("")}</div>
+  <div class="soft"><div class="eyebrow" style="margin-bottom:8px">Readiness by lecture (share of questions you've gotten right at least once)</div>
+    ${Array.from({length:u.to-u.from+1},(_,k)=>{const l=u.from+k;const r=readiness(l);return `<div class="row" style="flex-wrap:nowrap;margin-bottom:6px"><span class="mono" style="width:44px;font-size:13px">L${l}</span><div class="meter" style="flex:1"><b style="width:${Math.round(r*100)}%"></b></div><span class="mono" style="width:44px;text-align:right;font-size:13px">${Math.round(r*100)}%</span></div>`}).join("")}
+  </div>`;
+  $("#back").onclick=()=>go("home");
+  document.querySelectorAll("[data-lv]").forEach(b=>b.onclick=()=>{S.level=b.dataset.lv;save();renderUnit();});
+  document.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{const l=+b.dataset.l;let s=unitSel(u);s=s.includes(l)?s.filter(x=>x!==l):[...s,l];if(!s.length){toast("Keep at least one lecture selected.");return;}S.sel["u"+u.id]=s;save();renderUnit();});
+  document.querySelectorAll("[data-g]").forEach(b=>b.onclick=()=>startGame(b.dataset.g,u));
+}
+
+// ===== GAME FRAMEWORK =====
+function inScope(L, u){
+  if(!u) return L.some(l=>S.lects.includes(l));
+  const sel=unitSel(u);
+  return L.some(l=>l>=u.from && l<=u.to && sel.includes(l));
+}
+function startGame(gid, u){
+  const level=S.level;
+  S.last=[...(S.last||[]),gid].slice(-5); save();
+  if(S.last.length>=4 && S.last.slice(-4).every(x=>x===gid)) toast("Overfitting alert: you've played the same game 4 times in a row. Try another one to generalize!",4200);
+  G={gid,unit:u,level,earned:0,log:[],hints:3+(S.ctx||0),cleanup:null};
+  const fn={pop:gamePop,bucket:gameBucket,memory:gameMemory,truth:gameTruth,stat:gameStat,boss:gameBoss}[gid];
+  go("play");
+  const ok=fn();
+  if(ok===false){ G=null; go(u?"unit":"home"); }
+}
+function playHead(title, sub){
+  const u=G.unit;
+  return `<div class="playhead"><button class="btn ghost sm" id="quit">← Quit</button><h2>${esc(title)}</h2><span class="chip">${esc(LV[G.level].n)}</span>${u?`<span class="chip">${esc(u.name)}</span>`:`<span class="chip">All lectures</span>`}<span style="margin-left:auto" class="mono" id="earned">+${G.earned} tokens</span></div>${sub?`<div class="muted">${sub}</div>`:""}`;
+}
+function wireQuit(){ $("#quit").onclick=()=>{ const u=G&&G.unit; if(G&&G.cleanup)G.cleanup(); G=null; go(u?"unit":"home"); }; }
+function updEarned(){ const e=$("#earned"); if(e&&G) e.textContent=`+${G.earned} tokens`; }
+function dotsHTML(n,i,res){ return `<div class="dots" aria-label="Progress">${Array.from({length:n},(_,k)=>`<i class="${k<i?(res[k]||''):k===i?'cur':''}"></i>`).join("")}</div>`; }
+function award(first, isJack){ let n=first?LV[G.level].a:LV[G.level].b; if(isJack) n*=2; addTokens(n); updEarned(); return n; }
+function finish(extra){
+  const g=G; S.rounds=(S.rounds||0)+1; save();
+  const missed=g.log.filter(x=>!x.ok);
+  const okFirst=g.log.filter(x=>x.ok&&x.first).length;
+  $("#s-play").innerHTML=`
+   <div class="card results">
+     <div class="eyebrow">Round complete</div>
+     <h2 style="font-family:var(--f-display);font-weight:400;font-size:28px">+${g.earned} tokens</h2>
+     <p style="margin:0">${okFirst} of ${g.log.length} right on the first try. ${esc(pick(missed.length?["Missed ones come back in later rounds until you've got them twice.","Every miss is training data."]:["Clean sweep. Gradient is doing a little dance.","Perfect round. Are you a reasoning model?"]))}</p>
+     ${extra||""}
+     ${missed.length?`<div><div class="eyebrow" style="margin-bottom:6px">Review these</div><div class="review">${missed.map(m=>`<div><b>${esc(m.a)}</b> ${lchips(m.L||[])}<br><span class="muted">${esc(m.q)}</span>${m.why?`<br>${esc(m.why)}`:""}</div>`).join("")}</div></div>`:""}
+     <div class="row"><button class="btn pri" id="again">Play again</button><button class="btn" id="toUnit">${g.unit?"Back to "+esc(g.unit.name):"Back to campus"}</button><button class="btn ghost" id="toShop">Visit the shop</button></div>
+   </div>`;
+  $("#again").onclick=()=>startGame(g.gid,g.unit);
+  $("#toUnit").onclick=()=>{G=null;go(g.unit?"unit":"home");};
+  $("#toShop").onclick=()=>{G=null;go("shop");};
+  G=null;
+  if(S.saveFor){ const it=ITEMS.find(i=>i.id===S.saveFor); if(it && S.tokens>=priceOf(it)) toast(`You can now afford ${it.n}!`); }
+}
+function feedback(el, ok, title, body, L, onNext){
+  el.innerHTML=`<div class="fb ${ok?'ok':'no'}"><h3>${esc(title)}</h3><p>${body}</p><div class="row">${lchips(L||[])}<button class="btn pri" id="next" style="margin-left:auto">Next →</button></div></div>`;
+  el.hidden=false; const n=$("#next"); n.focus({preventScroll:true}); n.onclick=onNext;
+  el.scrollIntoView({block:"nearest",behavior:reduced?"auto":"smooth"});
+}
+function noContent(){ toast("Not enough questions for these lectures at this level. Select more lectures or try another level.",4000); return false; }
+
+// decoy terms for a target term
+function decoys(t, k, nearOnly, u){
+  const same=shuffle(TERMS.filter(x=>x.id!==t.id && x.g===t.g));
+  if(nearOnly && same.length>=k) return same.slice(0,k);
+  const unitT=shuffle(TERMS.filter(x=>x.id!==t.id && x.g!==t.g && (!u || x.L.some(l=>l>=u.from&&l<=u.to))));
+  const rest=shuffle(TERMS.filter(x=>x.id!==t.id && !same.includes(x) && !unitT.includes(x)));
+  const pool = nearOnly? [...same,...unitT,...rest] : [...same.slice(0,Math.ceil(k/2)),...unitT,...same.slice(Math.ceil(k/2)),...rest];
+  return pool.slice(0,k);
+}
+
+// ===== GAME: TERM POP =====
+function gamePop(){
+  const u=G.unit, lv=G.level, N=8;
+  let qs=[];
+  if(lv==="rem"){
+    qs=weightedPick(TERMS.filter(t=>inScope(t.L,u)),N).map(t=>({key:t.key,t,prompt:t.d,kind:"Which term matches this definition?"}));
+  } else if(lv==="app"){
+    qs=weightedPick(SCEN.filter(s=>s.lvl===2 && inScope(s.L,u)),N).map(s=>({key:s.key,t:TERM[s.tid],prompt:s.text,kind:"Which concept is this an example of?"}));
+    if(qs.length<N) qs=qs.concat(weightedPick(SCEN.filter(s=>s.lvl===3 && inScope(s.L,u)),N-qs.length).map(s=>({key:s.key,t:TERM[s.tid],prompt:s.text,kind:"Which concept is this an example of?"})));
+  } else {
+    const a=SCEN.filter(s=>s.lvl===3 && inScope(s.L,u)).map(s=>({key:s.key,t:TERM[s.tid],prompt:s.text,kind:"Which concept explains this best? (Near-miss decoys!)"}));
+    const b=TERMS.filter(t=>inScope(t.L,u)).map(t=>({key:t.key,t,prompt:t.d,kind:"Which term matches? (Near-miss decoys!)"}));
+    qs=weightedPick(a,6).concat(weightedPick(b,N)).slice(0,N);
+  }
+  if(qs.length<3) return noContent();
+  qs=shuffle(qs);
+  const nb={rem:4,app:5,ana:6}[lv], dur={rem:11,app:9.5,ana:8}[lv];
+  let i=0, res=[], jack=Math.floor(Math.random()*qs.length);
+  function q(){
+    if(i>=qs.length) return finish();
+    const Q=qs[i]; let tries=0, hintStep=0, done=false;
+    const opts=[Q.t, ...decoys(Q.t, lv==="rem"?nb-1:nb-2, lv==="ana", u)];
+    let balloons=opts.map(t=>({label:t.n,ok:t.id===Q.t.id,trap:false}));
+    if(lv!=="rem") balloons.push({label:pick(FAKE_TERMS),ok:false,trap:true});
+    balloons=shuffle(balloons);
+    const colors=["#FF8FA3","#FFD166","#8FD3FF","#A0E7A0","#FFB27A","#F6A6FF","#9FE5D8"];
+    $("#s-play").innerHTML=`${playHead("Term Pop")}
+      ${dotsHTML(qs.length,i,res)}
+      <div class="prompt"><span class="lab eyebrow">${esc(Q.kind)} ${i===jack?'<span class="jack">JACKPOT ×2</span>':''}</span>${esc(Q.prompt)}</div>
+      <div class="tools"><button class="btn sm" id="hint">Hint (${G.hints} left)</button>${S.centaur>0?`<button class="btn sm" id="cent">Centaur card (${S.centaur})</button>`:""}<span class="muted" id="hinttxt" style="font-size:14px"></span></div>
+      <div class="sky ${reduced?'static':''}" id="sky"></div>
+      <div id="fb" hidden></div>`;
+    wireQuit();
+    const sky=$("#sky"); const W=sky.clientWidth||600; const lanes=Math.max(2,Math.floor((W-10)/128)); const rows=Math.ceil(balloons.length/lanes); const laneW=(W-10)/lanes;
+    balloons.forEach((b,k)=>{
+      const lane=k%lanes,row=Math.floor(k/lanes);
+      const el=document.createElement("button"); el.className="balloon"+(b.trap?" trap":""); el.type="button";
+      const d=dur*(0.92+Math.random()*0.16);
+      el.style.setProperty("--d",d+"s");
+      el.style.setProperty("--dl",(-(d*(row/rows)+ (lane%2)*d*0.5/rows + Math.random()*d*0.08)).toFixed(2)+"s");
+      el.style.left=(5+lane*laneW+(laneW-122)/2+(Math.random()*10-5))+"px";
+      const c=colors[(k+i)%colors.length];
+      el.innerHTML=`<span class="bb" style="background:${c}">${esc(b.label)}</span><span class="kn" style="background:${c}"></span><span class="st"></span>`;
+      el.setAttribute("aria-label",b.label);
+      el.onclick=()=>hit(b,el);
+      b.el=el; sky.appendChild(el);
+    });
+    function hit(b,el){
+      if(done) return;
+      el.classList.add("popped"); beep(b.ok?"pop":(b.trap?"trap":"bad"));
+      if(b.ok){
+        done=true; const first=tries===0; mark(Q.key,true); if(Q.key!==Q.t.key) mark(Q.t.key,true);
+        res[i]=first?"ok":"half"; const n=award(first,i===jack); G.log.push({ok:true,first,q:Q.prompt,a:Q.t.full,L:Q.t.L});
+        feedback($("#fb"),true,`${pick(QUIPS_OK)} +${n}`,`<b>${esc(Q.t.full)}</b>: ${esc(Q.t.d)}`,Q.t.L,()=>{i++;q();});
+      } else {
+        tries++;
+        if(b.trap) toast("That term doesn't exist. It was a hallucination!");
+        else $("#hinttxt").textContent=pick(QUIPS_NO);
+        if(tries>=3){
+          done=true; mark(Q.key,false); res[i]="no";
+          balloons.find(x=>x.ok).el.classList.add("glow");
+          G.log.push({ok:false,first:false,q:Q.prompt,a:Q.t.full,L:Q.t.L,why:Q.t.d});
+          feedback($("#fb"),false,"The answer was "+Q.t.n,`<b>${esc(Q.t.full)}</b>: ${esc(Q.t.d)}`,Q.t.L,()=>{i++;q();});
+        }
+      }
+    }
+    $("#hint").onclick=()=>{
+      if(done||G.hints<=0) return toast("No hints left this round.");
+      hintStep++; G.hints--; $("#hint").textContent=`Hint (${G.hints} left)`;
+      if(hintStep===1) $("#hinttxt").textContent=`Covered in ${Q.t.L.map(l=>"L"+l+" ("+LECTURES[l]+")").join(", ")}.`;
+      else if(hintStep===2){ balloons.filter(b=>!b.ok && !b.el.classList.contains("popped")).slice(0,2).forEach(b=>b.el.classList.add("gone")); $("#hinttxt").textContent="Removed two wrong balloons."; }
+      else { $("#hinttxt").textContent=`Starts with "${Q.t.n.slice(0,3)}…"`; }
+    };
+    const c=$("#cent"); if(c) c.onclick=()=>{ if(done)return; S.centaur--; save(); const wrong=balloons.filter(b=>!b.ok&&!b.el.classList.contains("gone")&&!b.el.classList.contains("popped")); shuffle(wrong).slice(0,Math.ceil(wrong.length/2)).forEach(b=>b.el.classList.add("gone")); c.remove(); toast("The goat took half the wrong answers."); };
+  }
+  q(); return true;
+}
+
+// ===== GAME: BUCKET SORT =====
+function gameBucket(){
+  const u=G.unit, lv=G.level;
+  const maxB={rem:2,app:3,ana:4}[lv];
+  let sets=BKT.filter(b=>b.b.length<=maxB && inScope(b.L,u));
+  if(!sets.length) sets=BKT.filter(b=>inScope(b.L,u));
+  if(!sets.length) return noContent();
+  const weak=sets.map(s=>({s,w:1+s.items.filter(x=>st(x.key).ok===0).length})); let tot=weak.reduce((a,x)=>a+x.w,0),r=Math.random()*tot,set=weak[0].s; for(const x of weak){r-=x.w;if(r<=0){set=x.s;break;}}
+  const items=shuffle(set.items).slice(0,10);
+  const D={rem:9,app:7.5,ana:6}[lv]*(reduced?1.6:1);
+  const bcol=["#8FD3FF","#FFB27A","#A0E7A0","#F6A6FF"];
+  let i=0,res=[],counts=set.b.map(()=>0),raf=0,y=0,last=0,live=false;
+  const jack=Math.floor(Math.random()*items.length);
+  $("#s-play").innerHTML=`${playHead("Bucket Sort",`<b>${esc(set.t)}</b> Tap the bucket (or press 1–${set.b.length}) before the card lands.`)}
+    <div id="dots"></div>
+    <div class="field" id="field"><div class="buckets">${set.b.map((b,k)=>`<button class="bucket" data-k="${k}" style="background:${bcol[k]};color:#1a1a22">${esc(b)}<span class="n">${k+1} · <span id="bc${k}">0</span></span></button>`).join("")}</div></div>
+    <div class="muted" id="note" style="min-height:24px"></div>`;
+  wireQuit();
+  const field=$("#field");
+  function drop(){
+    $("#dots").innerHTML=dotsHTML(items.length,i,res);
+    if(i>=items.length){ live=false; return finish(); }
+    const it=items[i];
+    const d=document.createElement("div"); d.className="drop"+(i===jack?" gold":""); d.innerHTML=(i===jack?'<span class="jack">×2</span> ':'')+esc(it.text); field.appendChild(d);
+    y=0; last=performance.now(); live=true;
+    const floor=field.clientHeight-110-d.offsetHeight;
+    const speed=floor/D;
+    function step(t){ if(!live) return; y+=speed*(t-last)/1000; last=t; d.style.top=y+"px"; if(y>=floor){ live=false; resolve(-1,d,it); return; } raf=requestAnimationFrame(step); }
+    raf=requestAnimationFrame(step);
+    G.cur={d,it};
+  }
+  function resolve(k,d,it){
+    live=false; cancelAnimationFrame(raf);
+    const right=k===it.b;
+    const fx=document.createElement("div"); fx.className="flash";
+    if(k>=0){ const bk=field.querySelector(`[data-k="${k}"]`); const br=bk.getBoundingClientRect(),fr=field.getBoundingClientRect(); d.classList.add("fly"); d.style.left=(br.left-fr.left+br.width/2)+"px"; d.style.top=(field.clientHeight-80)+"px"; d.style.transform="translateX(-50%) scale(.3)"; bk.classList.remove("hit","wrongb"); void bk.offsetWidth; bk.classList.add(right?"hit":"wrongb"); }
+    if(right){ counts[k]++; $("#bc"+k).textContent=counts[k]; mark(it.key,true); res[i]="ok"; const n=award(true,i===jack); fx.textContent="+"+n; fx.style.color="var(--mint)"; beep("good"); G.log.push({ok:true,first:true,q:it.text,a:set.b[it.b],L:it.L}); $("#note").textContent=""; }
+    else { mark(it.key,false); res[i]="no"; fx.textContent=k<0?"Missed!":"Oops"; fx.style.color="var(--coral)"; beep("bad"); G.log.push({ok:false,first:false,q:it.text,a:set.b[it.b],L:it.L,why:`Belongs in "${set.b[it.b]}" (${set.t})`}); $("#note").innerHTML=`<b>${esc(it.text)}</b> belongs in <b>${esc(set.b[it.b])}</b>.`; }
+    field.appendChild(fx);
+    setTimeout(()=>{ d.remove(); fx.remove(); i++; if(G) drop(); }, right?450:1300);
+  }
+  field.querySelectorAll(".bucket").forEach(b=>b.onclick=()=>{ if(live&&G.cur) resolve(+b.dataset.k,G.cur.d,G.cur.it); });
+  const key=e=>{ const k=+e.key-1; if(k>=0&&k<set.b.length&&live&&G&&G.cur){ resolve(k,G.cur.d,G.cur.it); } };
+  document.addEventListener("keydown",key);
+  G.cleanup=()=>{ live=false; cancelAnimationFrame(raf); document.removeEventListener("keydown",key); };
+  drop(); return true;
+}
+
+// ===== GAME: MEMORY MATCH =====
+function gameMemory(){
+  const u=G.unit, lv=G.level;
+  let pairs=[];
+  const termPairs=n=>weightedPick(TERMS.filter(t=>inScope(t.L,u)),n).map(t=>({key:t.key,a:t.n,b:t.d.split(/(?<=\.)\s/)[0].slice(0,110),L:t.L,full:t.full,kind:"term"}));
+  const studyPairs=n=>weightedPick(STU.filter(s=>inScope(s.L,u)),n).map(s=>({key:s.key,a:s.who,b:s.f,L:s.L,full:s.who,kind:"study"}));
+  if(lv==="rem") pairs=termPairs(6);
+  else if(lv==="app"){ pairs=studyPairs(6); if(pairs.length<6) pairs=pairs.concat(termPairs(6-pairs.length)); }
+  else { pairs=studyPairs(4).concat(termPairs(8)).slice(0,8); }
+  if(pairs.length<3) return noContent();
+  const jack=Math.floor(Math.random()*pairs.length);
+  let cards=shuffle(pairs.flatMap((p,k)=>[{p:k,side:"a",text:p.a},{p:k,side:"b",text:p.b}]));
+  let open=[],matched=0,failed=new Set(),lock=false,res=[];
+  $("#s-play").innerHTML=`${playHead("Memory Match", lv==="rem"?"Pair each term with its definition.":"Pair each study or thinker with the finding or idea.")}
+    <div class="tools"><button class="btn sm" id="peek">Peek at all cards (${G.hints} hints left)</button><span class="muted" id="mnote" style="font-size:14px"></span></div>
+    <div class="mem" id="mem">${cards.map((c,k)=>`<button class="mcard ${pairs[c.p].kind==='study'&&c.side==='a'?'study':''}" data-k="${k}"><span class="back">?</span></button>`).join("")}</div>`;
+  wireQuit();
+  const els=[...document.querySelectorAll(".mcard")];
+  function show(k){ els[k].classList.add("up"); els[k].textContent=cards[k].text; }
+  function hide(k){ if(cards[k].done) return; els[k].classList.remove("up"); els[k].innerHTML='<span class="back">?</span>'; }
+  els.forEach((el,k)=>el.onclick=()=>{
+    if(lock||cards[k].done||open.includes(k)) return;
+    show(k); open.push(k); beep("pop");
+    if(open.length===2){
+      const [x,y]=open; open=[];
+      if(cards[x].p===cards[y].p){
+        const p=pairs[cards[x].p]; cards[x].done=cards[y].done=true;
+        [x,y].forEach(z=>{els[z].classList.add("done"); if(cards[x].p===jack) els[z].classList.add("jp");});
+        const first=!failed.has(x)&&!failed.has(y); mark(p.key,first);
+        const n=award(first,cards[x].p===jack); res.push(first?"ok":"half");
+        G.log.push({ok:true,first,q:p.b,a:p.full,L:p.L});
+        $("#mnote").textContent=`${cards[x].p===jack?"JACKPOT! ":""}+${n} · ${p.a} ↔ ${p.b}`;
+        matched++; if(matched===pairs.length) setTimeout(finish,900);
+      } else {
+        failed.add(x); failed.add(y); lock=true;
+        els[x].classList.add("bad"); els[y].classList.add("bad");
+        setTimeout(()=>{ els[x].classList.remove("bad"); els[y].classList.remove("bad"); hide(x); hide(y); lock=false; },1100);
+      }
+    }
+  });
+  $("#peek").onclick=()=>{
+    if(lock||G.hints<=0) return toast("No hints left this round.");
+    G.hints--; $("#peek").textContent=`Peek at all cards (${G.hints} hints left)`; lock=true;
+    els.forEach((e,k)=>{ if(!cards[k].done && !open.includes(k)) show(k); });
+    setTimeout(()=>{ els.forEach((e,k)=>{ if(!open.includes(k)) hide(k); }); lock=false; },1800);
+  };
+  return true;
+}
+
+// ===== GAME: TWO TRUTHS & A HALLUCINATION =====
+function gameTruth(){
+  const u=G.unit; const N=6;
+  let qs=weightedPick(TRU.filter(t=>inScope(t.L,u)),N);
+  if(qs.length<2) return noContent();
+  let i=0,res=[],jack=Math.floor(Math.random()*qs.length);
+  function q(){
+    if(i>=qs.length) return finish();
+    const Q=qs[i]; let tries=0,done=false,hs=0;
+    const order=shuffle([0,1,2]);
+    $("#s-play").innerHTML=`${playHead("Two Truths & a Hallucination")}
+      ${dotsHTML(qs.length,i,res)}
+      <div class="prompt"><span class="lab eyebrow">Gradient's AI assistant says… ${i===jack?'<span class="jack">JACKPOT ×2</span>':''}</span>Two of these are true. Tap the hallucination.</div>
+      <div class="claims">${order.map((k,j)=>`<button class="claim" data-k="${k}"><span class="bot">claim ${j+1}</span><span>${esc(Q.c[k])}</span></button>`).join("")}</div>
+      <div class="tools"><button class="btn sm" id="hint">Hint (${G.hints} left)</button>${S.centaur>0?`<button class="btn sm" id="cent">Centaur card (${S.centaur})</button>`:""}<span class="muted" id="hinttxt" style="font-size:14px"></span></div>
+      <div id="fb" hidden></div>`;
+    wireQuit();
+    const els=[...document.querySelectorAll(".claim")];
+    const elOf=k=>els.find(e=>+e.dataset.k===k);
+    function reveal(){ els.forEach(e=>{ const k=+e.dataset.k; if(k===Q.f){e.classList.add("hal");e.querySelector(".bot").textContent="hallucination";} else {e.classList.add("true");e.querySelector(".bot").textContent="true";} }); }
+    els.forEach(e=>e.onclick=()=>{
+      if(done||e.classList.contains("true")) return;
+      const k=+e.dataset.k;
+      if(k===Q.f){ done=true; const first=tries===0; mark(Q.key,true); res[i]=first?"ok":"half"; beep("good"); const n=award(first,i===jack); reveal(); G.log.push({ok:true,first,q:Q.c[Q.f],a:"Hallucination",L:Q.L});
+        feedback($("#fb"),true,`Caught it! +${n}`,esc(Q.why),Q.L,()=>{i++;q();}); }
+      else { tries++; beep("bad"); e.classList.add("true","shk"); e.querySelector(".bot").textContent="true"; $("#hinttxt").textContent="That one is actually true.";
+        if(tries>=2){ done=true; mark(Q.key,false); res[i]="no"; reveal(); G.log.push({ok:false,first:false,q:Q.c[Q.f],a:"This was the hallucination",L:Q.L,why:Q.why}); feedback($("#fb"),false,"Fooled by a plausible claim",`The hallucination: "${esc(Q.c[Q.f])}" ${esc(Q.why)}`,Q.L,()=>{i++;q();}); } }
+    });
+    $("#hint").onclick=()=>{
+      if(done||G.hints<=0) return toast("No hints left this round.");
+      hs++; G.hints--; $("#hint").textContent=`Hint (${G.hints} left)`;
+      if(hs===1) $("#hinttxt").textContent=`From ${Q.L.map(l=>"L"+l+" ("+LECTURES[l]+")").join(", ")}. Watch for flipped directions and wrong numbers.`;
+      else { const t=[0,1,2].find(k=>k!==Q.f&&!elOf(k).classList.contains("true")); if(t!==undefined){ const e=elOf(t); e.classList.add("true"); e.querySelector(".bot").textContent="true"; } $("#hinttxt").textContent="One true claim marked."; }
+    };
+    const c=$("#cent"); if(c) c.onclick=()=>{ if(done)return; S.centaur--; save(); const t=[0,1,2].find(k=>k!==Q.f&&!elOf(k).classList.contains("true")); if(t!==undefined){const e=elOf(t);e.classList.add("true");e.querySelector(".bot").textContent="true";} c.remove(); };
+  }
+  q(); return true;
+}
+
+// ===== GAME: GUESS THE STAT =====
+function fmtNum(v,it){ const dec=it.step<1?(String(it.step).split(".")[1]||"").length:0; let s=Number(v).toLocaleString("en-US",{minimumFractionDigits:dec,maximumFractionDigits:dec}); if(it.u==="%") s+="%"; else if(it.u==="×") s+="×"; else if(it.u) s+=it.u; return s; }
+function gameStat(){
+  const u=G.unit; const N=6;
+  let qs=weightedPick(STA.filter(t=>inScope(t.L,u)),N);
+  if(qs.length<2) return noContent();
+  const tol={rem:[.06,.14,.25],app:[.04,.10,.2],ana:[.025,.07,.15]}[G.level];
+  let i=0,res=[],jack=Math.floor(Math.random()*qs.length);
+  function q(){
+    if(i>=qs.length) return finish();
+    const Q=qs[i]; const mid=Q.min+Math.round(((Q.max-Q.min)/2)/Q.step)*Q.step; let done=false;
+    $("#s-play").innerHTML=`${playHead("Guess the Stat")}
+      ${dotsHTML(qs.length,i,res)}
+      <div class="card stat">
+        <div class="prompt"><span class="lab eyebrow">From the lectures ${i===jack?'<span class="jack">JACKPOT ×2</span>':''}</span>${esc(Q.q)}</div>
+        <div class="bigval" id="val">${fmtNum(mid,Q)}</div>
+        <div class="slider-wrap"><div class="band" id="band" hidden></div><label class="eyebrow" for="sl">Your guess</label><input type="range" id="sl" min="${Q.min}" max="${Q.max}" step="${Q.step}" value="${mid}"><div class="row" style="justify-content:space-between"><span class="mono muted" style="font-size:12px">${fmtNum(Q.min,Q)}</span><span class="mono muted" style="font-size:12px">${fmtNum(Q.max,Q)}</span></div></div>
+        <div class="row"><button class="btn sm" id="minus">−</button><button class="btn sm" id="plus">+</button><button class="btn sm" id="hint">Hint (${G.hints} left)</button><button class="btn pri" id="lock" style="margin-left:auto">Lock it in</button></div>
+        <div id="nl"></div>
+      </div>
+      <div id="fb" hidden></div>`;
+    wireQuit();
+    const sl=$("#sl"); const upd=()=>$("#val").textContent=fmtNum(sl.value,Q); sl.oninput=upd;
+    const nudge=dir=>{ sl.value=Math.min(Q.max,Math.max(Q.min,+sl.value+dir*Q.step*(Q.max-Q.min>200?Math.max(1,Math.round((Q.max-Q.min)/200/Q.step)):1))); upd(); };
+    $("#minus").onclick=()=>nudge(-1); $("#plus").onclick=()=>nudge(1);
+    $("#hint").onclick=()=>{ if(done||G.hints<=0) return toast("No hints left this round."); G.hints--; $("#hint").textContent=`Hint (${G.hints} left)`; const R=Q.max-Q.min, w=R*.3; let lo=Q.a-w*(0.2+Math.random()*0.6); lo=Math.max(Q.min,Math.min(lo,Q.max-w)); const b=$("#band"); b.hidden=false; b.style.left=`calc(4px + ${(lo-Q.min)/R*100}% )`; b.style.width=`${w/R*100}%`; toast(`It's in the shaded zone. From ${Q.L.map(l=>"L"+l).join(", ")}.`); };
+    $("#lock").onclick=()=>{
+      if(done) return; done=true; const g=+sl.value, R=Q.max-Q.min, err=Math.abs(g-Q.a)/R;
+      let n=0, title, ok=true;
+      if(err<=tol[0]){ n=award(true,i===jack); title=`Bullseye! +${n}`; res[i]="ok"; mark(Q.key,true); }
+      else if(err<=tol[1]){ n=award(false,i===jack); title=`Close! +${n}`; res[i]="half"; mark(Q.key,true); }
+      else if(err<=tol[2]){ addTokens(1); updEarned(); n=1; title="In the neighborhood. +1"; res[i]="half"; mark(Q.key,false); ok=false; }
+      else { title="Way off"; res[i]="no"; mark(Q.key,false); ok=false; beep("bad"); }
+      G.log.push({ok:n>=LV[G.level].b,first:err<=tol[0],q:Q.q,a:fmtNum(Q.a,Q),L:Q.L,why:Q.note});
+      const pos=v=>((v-Q.min)/R*100);
+      $("#nl").innerHTML=`<div class="numline"><div class="ax"></div><div class="mk" style="left:${pos(g)}%">you: ${fmtNum(g,Q)}<i style="background:var(--sky)"></i></div><div class="mk" style="left:${pos(Q.a)}%;top:30px"><i style="background:var(--mint)"></i>answer: ${fmtNum(Q.a,Q)}</div></div>`;
+      ["sl","minus","plus","hint","lock"].forEach(id=>$("#"+id).disabled=true);
+      feedback($("#fb"),ok,title,`The answer is <b>${fmtNum(Q.a,Q)}</b>. ${esc(Q.note)}`,Q.L,()=>{i++;q();});
+    };
+  }
+  q(); return true;
+}
+
+// ===== GAME: FINAL BOSS =====
+function gameBoss(){
+  const u=G.unit, lv=G.level, N=10, T={rem:40,app:30,ana:22}[lv];
+  const mk=[];
+  const tScope=TERMS.filter(t=>inScope(t.L,u));
+  if(lv==="rem"){
+    weightedPick(tScope,7).forEach(t=>mk.push({key:t.key,q:t.d,lab:"Which term?",opts:shuffle([t.n,...decoys(t,3,false,u).map(x=>x.n)]),a:t.n,L:t.L,why:t.full+": "+t.d}));
+    weightedPick(STU.filter(s=>inScope(s.L,u)),4).forEach(s=>mk.push({key:s.key,q:s.who,lab:"Which finding or idea goes with…",opts:shuffle([s.f,...shuffle(STU.filter(x=>x!==s)).slice(0,3).map(x=>x.f)]),a:s.f,L:s.L,why:s.who+": "+s.f}));
+  } else {
+    const sc=SCEN.filter(s=>inScope(s.L,u)&&(lv==="ana"?s.lvl===3:true));
+    weightedPick(sc,lv==="ana"?5:6).forEach(s=>{const t=TERM[s.tid];mk.push({key:s.key,q:s.text,lab:"Which concept?",opts:shuffle([t.n,...decoys(t,3,lv==="ana",u).map(x=>x.n)]),a:t.n,L:t.L,why:t.full+": "+t.d});});
+    weightedPick(TRU.filter(t=>inScope(t.L,u)),lv==="ana"?4:2).forEach(t=>mk.push({key:t.key,q:"Which claim is the hallucination?",lab:"Spot the error",opts:shuffle(t.c.slice()),a:t.c[t.f],L:t.L,why:t.why,long:true}));
+    weightedPick(STA.filter(t=>inScope(t.L,u)),3).forEach(s=>{const R=s.max-s.min;const cand=new Set([s.a]);let guard=0;while(cand.size<4&&guard++<50){let v=s.a+(Math.random()<.5?-1:1)*R*(0.12+Math.random()*0.35);v=Math.round(v/s.step)*s.step;v=Math.min(s.max,Math.max(s.min,v));v=+v.toFixed(3);cand.add(v);}mk.push({key:s.key,q:s.q,lab:"Which number?",opts:shuffle([...cand].map(v=>fmtNum(v,s))),a:fmtNum(s.a,s),L:s.L,why:s.note});});
+  }
+  let qs=shuffle(mk).slice(0,N);
+  if(qs.length<3) return noContent();
+  let i=0,res=[],timer=0,score=0;
+  const per={};
+  function q(){
+    clearInterval(timer);
+    if(i>=qs.length){ const bonus=score; if(bonus) addTokens(bonus);
+      const ls=Object.keys(per).sort((a,b)=>a-b);
+      return finish(`<p style="margin:0">Score: <b>${score}/${qs.length}</b>${bonus?` · completion bonus +${bonus}`:""}</p><div class="row">${ls.map(l=>`<span class="chip" style="border-color:${per[l].ok===per[l].n?'var(--mint)':per[l].ok===0?'var(--coral)':'var(--gold)'}">L${l}: ${per[l].ok}/${per[l].n}</span>`).join("")}</div>`); }
+    const Q=qs[i]; let done=false, left=T;
+    $("#s-play").innerHTML=`${playHead("Final Boss","Timed and mixed. One try per question, no hints.")}
+      ${dotsHTML(qs.length,i,res)}
+      <div class="timer"><b id="tb"></b></div>
+      <div class="prompt"><span class="lab eyebrow">${esc(Q.lab)} · <span id="tl">${T}s</span></span>${esc(Q.q)}</div>
+      <div class="opts" style="${Q.long?'grid-template-columns:minmax(0,1fr)':''}">${Q.opts.map(o=>`<button class="opt">${esc(o)}</button>`).join("")}</div>
+      <div class="tools">${S.centaur>0?`<button class="btn sm" id="cent">Centaur card (${S.centaur})</button>`:""}</div>
+      <div id="fb" hidden></div>`;
+    wireQuit();
+    const opts=[...document.querySelectorAll(".opt")];
+    function end(chosen){
+      if(done) return; done=true; clearInterval(timer);
+      const ok=chosen===Q.a; mark(Q.key,ok); res[i]=ok?"ok":"no";
+      Q.L.forEach(l=>{per[l]=per[l]||{n:0,ok:0};per[l].n++;if(ok)per[l].ok++;});
+      opts.forEach(o=>{ if(o.textContent===Q.a) o.classList.add("right"); else if(o.textContent===chosen) o.classList.add("wrong"); o.disabled=true; });
+      let n=0; if(ok){ score++; n=award(true,false); beep("good"); } else beep("bad");
+      G.log.push({ok,first:ok,q:Q.q,a:Q.a,L:Q.L,why:Q.why});
+      feedback($("#fb"),ok,ok?`Correct! +${n}`:(chosen==null?"Time's up":"Not quite"),`${ok?"":"Answer: <b>"+esc(Q.a)+"</b>. "}${esc(Q.why)}`,Q.L,()=>{i++;q();});
+    }
+    opts.forEach(o=>o.onclick=()=>end(o.textContent));
+    const c=$("#cent"); if(c) c.onclick=()=>{ if(done)return; S.centaur--; save(); const w=opts.filter(o=>o.textContent!==Q.a); shuffle(w).slice(0,Math.ceil(w.length/2)).forEach(o=>o.classList.add("gone")); c.remove(); };
+    const tb=$("#tb"); const t0=Date.now();
+    timer=setInterval(()=>{ left=Math.max(0,T-(Date.now()-t0)/1000); tb.style.width=(left/T*100)+"%"; const tl=$("#tl"); if(tl) tl.textContent=Math.ceil(left)+"s"; if(left<=0) end(null); },200);
+    G.cleanup=()=>clearInterval(timer);
+  }
+  q(); return true;
+}
+
+// ===== SHOP =====
+let SHOP_TAB="wear";
+function priceOf(it){
+  if(it.id==="coal") return Math.round(5*Math.pow(1.6,S.stacks.coal||0));
+  if(it.id==="gpu") return Math.round(200*Math.pow(1.25,S.stacks.gpu||0));
+  if(it.id==="ctx") return (S.ctx||0)>=1?80:40;
+  return it.p;
+}
+function itemPic(it){
+  if(it.kind==="wear"){ const eq={head:null,face:null,ears:null,neck:null,body:null}; eq[it.slot]=it.id; return goatSVG(eq, it.slot==="body"?"0 -6 200 246":"10 -8 180 170"); }
+  if(it.kind==="place") return `<svg viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg" style="height:88px">${VIEWS[it.id]}</svg>`;
+  return iconSVG(it.icon,80);
+}
+function renderShop(){
+  const list=ITEMS.filter(i=>i.cat===SHOP_TAB);
+  $("#s-shop").innerHTML=`
+   <div class="uhead"><div><div class="eyebrow">Spend your tokens</div><h2 style="font-family:var(--f-display);font-weight:400;font-size:26px">The Token Shop</h2></div><span class="muted" style="margin-left:auto">Prices are in tokens. Some prices respond to demand.</span></div>
+   <div class="tabs" role="tablist">${CATS.map(([k,n])=>`<button role="tab" aria-selected="${SHOP_TAB===k}" data-t="${k}">${n}</button>`).join("")}</div>
+   <div class="shopgrid">${list.map(it=>{
+     const pr=priceOf(it); const have=owns(it.id);
+     let action="";
+     if(it.kind==="wear") action= have? `<button class="btn sm" data-eq="${it.id}">${S.equip[it.slot]===it.id?"Take off":"Wear"}</button>` : `<button class="btn sm pri" data-buy="${it.id}" ${S.tokens<pr?"disabled":""}>Buy</button>`;
+     else if(it.kind==="place") action= have? `<button class="btn sm" data-place="${it.id}">${S.place===it.id?"In use":"Use view"}</button>` : `<button class="btn sm pri" data-buy="${it.id}" ${S.tokens<pr?"disabled":""}>Buy</button>`;
+     else if(it.stack) action=`<span class="mono" style="font-size:12px">own ${S.stacks[it.id]||0}</span><button class="btn sm pri" data-buy="${it.id}" ${S.tokens<pr?"disabled":""}>Buy</button>${it.id==="clips"?`<button class="btn sm" data-buy10="clips" ${S.tokens<10?"disabled":""}>Buy 10</button>`:""}`;
+     else if(it.id==="ctx") action=(S.ctx||0)>=2?`<span class="chip">Maxed (+2)</span>`:`<button class="btn sm pri" data-buy="ctx" ${S.tokens<pr?"disabled":""}>Buy</button>`;
+     else if(it.id==="centaur") action=`<span class="mono" style="font-size:12px">own ${S.centaur||0}</span><button class="btn sm pri" data-buy="centaur" ${S.tokens<pr?"disabled":""}>Buy</button>`;
+     else action= have? `<span class="chip">Owned</span>` : `<button class="btn sm pri" data-buy="${it.id}" ${S.tokens<pr?"disabled":""}>Buy</button>`;
+     const canSave=!have||it.stack;
+     return `<div class="item"><div class="pic">${itemPic(it)}</div><h4>${esc(it.n)}</h4><p>${esc(it.d)}</p><div class="buy"><span class="price">${it.id==="clips"?"1":pr} T</span>${canSave&&it.kind!=="power"?`<button class="star" data-save="${it.id}" aria-pressed="${S.saveFor===it.id}" title="Save for this">★</button>`:""}${action}</div></div>`;
+   }).join("")}</div>
+   ${S.badges.paperclip?`<div class="soft"><b>Badge earned:</b> Paperclip Maximizer. You optimized one objective a little too well.</div>`:""}`;
+  document.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{SHOP_TAB=b.dataset.t;renderShop();});
+  document.querySelectorAll("[data-buy]").forEach(b=>b.onclick=()=>buy(b.dataset.buy,1));
+  document.querySelectorAll("[data-buy10]").forEach(b=>b.onclick=()=>buy("clips",10));
+  document.querySelectorAll("[data-eq]").forEach(b=>b.onclick=()=>{const it=ITEMS.find(x=>x.id===b.dataset.eq);S.equip[it.slot]=S.equip[it.slot]===it.id?null:it.id;save();renderShop();});
+  document.querySelectorAll("[data-place]").forEach(b=>b.onclick=()=>{S.place=b.dataset.place;save();renderShop();});
+  document.querySelectorAll("[data-save]").forEach(b=>b.onclick=()=>{S.saveFor=S.saveFor===b.dataset.save?null:b.dataset.save;save();renderShop();toast(S.saveFor?"Saving for this. Progress shows on the campus page.":"Stopped saving.");});
+}
+function buy(id,qty){
+  const it=ITEMS.find(x=>x.id===id); const cost=id==="clips"?qty:priceOf(it);
+  if(S.tokens<cost) return toast("Not enough tokens yet. Play a round!");
+  S.tokens-=cost; renderTok(true);
+  if(it.stack){ S.stacks[id]=(S.stacks[id]||0)+qty; S.owned[id]=true; }
+  else if(id==="ctx") S.ctx=(S.ctx||0)+1;
+  else if(id==="centaur") S.centaur=(S.centaur||0)+1;
+  else { S.owned[id]=true; if(it.kind==="wear") S.equip[it.slot]=id; }
+  if(S.saveFor===id && !it.stack) S.saveFor=null;
+  if(id==="clips" && S.stacks.clips>=100 && !S.badges.paperclip){ S.badges.paperclip=true; toast("Badge: Paperclip Maximizer! 📎",4000); }
+  else toast(id==="coal"?"Coal acquired. The next lump costs more (Jevons would be proud).":id==="gpu"?"GPU acquired. Demand shock: the price just went up 25%.":`Bought: ${it.n}`);
+  beep("coin"); save(); renderShop();
+}
+
+// ===== ROOM =====
+function renderRoom(){
+  const wear=ITEMS.filter(i=>i.kind==="wear"&&owns(i.id));
+  const room=ITEMS.filter(i=>i.kind==="room"&&owns(i.id));
+  const places=[{id:"quad",n:"Campus quad"},...ITEMS.filter(i=>i.kind==="place"&&owns(i.id))];
+  $("#s-room").innerHTML=`
+   <div class="uhead"><div><div class="eyebrow">Home sweet dorm</div><h2 style="font-family:var(--f-display);font-weight:400;font-size:26px">Gradient's Dorm Room</h2></div><button class="btn sm" id="toshop" style="margin-left:auto">Go shopping</button></div>
+   <div class="roomwrap">
+     <div>${roomSVG()}</div>
+     <div class="soft owned">
+       <div class="eyebrow">Wardrobe</div>
+       ${wear.length?wear.map(i=>`<label><input type="checkbox" data-w="${i.id}" ${S.equip[i.slot]===i.id?"checked":""}> ${esc(i.n)}</label>`).join(""):`<span class="muted" style="font-size:14px">Nothing yet. Party hats start at 5 tokens.</span>`}
+       <div class="eyebrow" style="margin-top:10px">Show in room</div>
+       ${room.length?room.map(i=>`<label><input type="checkbox" data-r="${i.id}" ${S.hidden[i.id]?"":"checked"}> ${esc(i.n)}${i.stack?` ×${S.stacks[i.id]}`:""}</label>`).join(""):`<span class="muted" style="font-size:14px">Your room is empty. A rubber duck is only 8 tokens.</span>`}
+       <div class="eyebrow" style="margin-top:10px">Window view</div>
+       ${places.map(p=>`<label><input type="radio" name="pl" data-p="${p.id}" ${S.place===p.id?"checked":""}> ${esc(p.n)}</label>`).join("")}
+       ${S.badges.paperclip?`<div class="chip" style="margin-top:8px">Badge: Paperclip Maximizer</div>`:""}
+     </div>
+   </div>`;
+  $("#toshop").onclick=()=>go("shop");
+  document.querySelectorAll("[data-w]").forEach(c=>c.onchange=()=>{const it=ITEMS.find(x=>x.id===c.dataset.w);S.equip[it.slot]=c.checked?it.id:null;save();renderRoom();});
+  document.querySelectorAll("[data-r]").forEach(c=>c.onchange=()=>{S.hidden[c.dataset.r]=!c.checked;save();renderRoom();});
+  document.querySelectorAll("[data-p]").forEach(c=>c.onchange=()=>{S.place=c.dataset.p;save();renderRoom();});
+}
+
+// ===== GLOSSARY =====
+let GQ="", GU=0;
+function renderGloss(){
+  const got=TERMS.filter(t=>st(t.key).ok>0).length;
+  const list=TERMS.filter(t=>(!GU||t.L.some(l=>l>=UNITS[GU-1].from&&l<=UNITS[GU-1].to)) && (!GQ||(t.full+" "+t.d).toLowerCase().includes(GQ.toLowerCase()))).sort((a,b)=>a.full.localeCompare(b.full));
+  $("#s-gloss").innerHTML=`
+   <div class="uhead"><div><div class="eyebrow">${got} of ${TERMS.length} collected (answered correctly at least once)</div><h2 style="font-family:var(--f-display);font-weight:400;font-size:26px">Glossary</h2></div></div>
+   <div class="meter"><b style="width:${got/TERMS.length*100}%"></b></div>
+   <div class="row"><input type="search" id="gq" placeholder="Search terms…" value="${esc(GQ)}" aria-label="Search terms">
+     <div class="tabs">${[["0","All"],...UNITS.map(u=>[String(u.id),u.quiz])].map(([k,n])=>`<button data-gu="${k}" aria-selected="${String(GU)===k}">${esc(n)}</button>`).join("")}</div></div>
+   <div class="gloss">${list.map(t=>`<div class="term ${st(t.key).ok>0?'got':''}"><h4>${st(t.key).ok>0?'<span style="color:var(--mint)">✓</span>':''}${esc(t.full)} ${lchips(t.L)}</h4><p>${esc(t.d)}</p></div>`).join("")||'<p class="muted">No terms match.</p>'}</div>`;
+  const gq=$("#gq"); gq.oninput=()=>{GQ=gq.value;const pos=gq.selectionStart;renderGloss();const n=$("#gq");n.focus();n.setSelectionRange(pos,pos);};
+  document.querySelectorAll("[data-gu]").forEach(b=>b.onclick=()=>{GU=+b.dataset.gu;renderGloss();});
+}
+
+// ===== SETTINGS =====
+let resetArm=false;
+function renderSettings(){
+  $("#s-settings").innerHTML=`
+   <div class="settings">
+     <h2 style="font-family:var(--f-display);font-weight:400;font-size:26px">Settings</h2>
+     <div class="soft" style="display:grid;gap:8px"><div class="eyebrow">Sound</div><label><input type="checkbox" id="snd" ${S.sound?"checked":""}> Pops and chimes</label></div>
+     <div class="soft" style="display:grid;gap:8px"><div class="eyebrow">Lectures included</div>
+       <p class="muted" style="margin:0;font-size:14px">Untick lectures you haven't covered yet. They're skipped everywhere in the game.</p>
+       <div class="lgrid">${ALL_L.map(l=>`<label title="${esc(LECTURES[l])}"><input type="checkbox" data-sl="${l}" ${S.lects.includes(l)?"checked":""}> L${l}</label>`).join("")}</div></div>
+     <div class="soft" style="display:grid;gap:8px"><div class="eyebrow">Progress</div>
+       <p class="muted" style="margin:0;font-size:14px">Saved in this browser only. Nothing is sent anywhere. ${S.rounds||0} rounds played.</p>
+       <div><button class="btn sm" id="reset">${resetArm?"Tap again to erase everything":"Reset all progress"}</button></div></div>
+     <p class="muted" style="font-size:13px;margin:0">Questions are drawn from the Fall 2026 lecture slides (L1–L19) and the course glossary. If you spot an error, tell Professor Abel.</p>
+   </div>`;
+  $("#snd").onchange=e=>{S.sound=e.target.checked;save();};
+  document.querySelectorAll("[data-sl]").forEach(c=>c.onchange=()=>{const l=+c.dataset.sl;S.lects=c.checked?[...new Set([...S.lects,l])].sort((a,b)=>a-b):S.lects.filter(x=>x!==l);if(!S.lects.length){S.lects=[l];c.checked=true;toast("Keep at least one lecture.");}save();});
+  $("#reset").onclick=()=>{ if(!resetArm){resetArm=true;renderSettings();setTimeout(()=>{resetArm=false;if(SCREEN==="settings")renderSettings();},4000);return;} resetArm=false; S=fresh(); save(); renderTok(); toast("Progress erased."); go("home"); };
+}
+
+renderTok();
+go("home");
+</script>
+</body></html>
