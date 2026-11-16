@@ -281,7 +281,7 @@ const TERMS_RAW = [
 ["bs","Bullshit (Frankfurt)","Bullshit (Frankfurt)","Statements made with no regard for whether they are true, aimed only at persuading. A liar hides the truth; this speaker doesn't care about it.",[11,12],"truth"],
 ["centaur","Centaurs vs. cyborgs","Centaurs vs. cyborgs","Two ways to work well with AI: split tasks between you and the AI, or weave AI into every step.",[15],"labor"],
 ["cot","Chain of thought","Chain of thought","Having a model work through a problem step by step before it answers. Now built into reasoning models.",[4,11],"reasoning"],
-["offload","Cognitive offloading","Cognitive offloading (cognitive debt)","Letting AI do mental work you would otherwise do yourself. In an MIT study, ChatGPT essay writers showed the weakest brain engagement.",[19],"edu"],
+["offload","Cognitive offloading","Cognitive offloading (cognitive debt)","Letting AI do mental work you would otherwise do yourself. In an MIT study, ChatGPT essay writers showed the weakest brain engagement.",[19,20],"edu"],
 ["compsub","Complements vs. substitutes","Complements vs. substitutes","Inputs that make each other more productive (pilots and planes) vs. inputs that can replace each other (packers and robots).",[1,7,14,15,17],"econ"],
 ["conseq","Consequentialism vs. deontology","Consequentialism vs. deontology","Judging actions only by their outcomes (values sit in the payoff) vs. ruling some actions out whatever their payoff (values limit choices).",[12,13],"decision"],
 ["constai","Constitutional AI","Constitutional AI","Fine-tuning in which the model critiques its own answers against written principles. Hard rules remove some actions entirely.",[12,13,14],"decision"],
@@ -300,9 +300,9 @@ const TERMS_RAW = [
 ["gan","GAN","Generative adversarial network (GAN)","Two competing networks: one generates images, the other tries to tell real images from fakes.",[7],"creativity"],
 ["sgd","Gradient descent","Gradient descent (stochastic)","Finding the weights that minimize the loss by taking repeated steps downhill. The stochastic version uses small random batches.",[2,3],"optim"],
 ["grpo","GRPO","Group Relative Policy Optimization (GRPO)","DeepSeek R1's RL method: try a problem several times, check each final answer by rule, make above-average attempts more likely.",[10,11],"reasoning"],
-["halluc","Hallucination","Hallucination","Confident, plausible-sounding output that is false, such as made-up citations.",[4,11,13],"truth"],
+["halluc","Hallucination","Hallucination","Confident, plausible-sounding output that is false, such as made-up citations.",[4,11,13,20],"truth"],
 ["inference","Inference","Inference","Using a trained model to make predictions on new inputs, such as answering a prompt.",[2,3],"optim"],
-["validity","Internal vs. external validity","Internal vs. external validity","Does a study identify cause and effect in its own sample? vs. Do its results carry over to other people and settings?",[8,9,14],"methods"],
+["validity","Internal vs. external validity","Internal vs. external validity","Does a study identify cause and effect in its own sample? vs. Do its results carry over to other people and settings?",[8,9,14,20],"methods"],
 ["isoquant","Isoquant","Isoquant","A curve of every labor–capital combination that produces the same output. Straight for substitutes, L-shaped for complements.",[15,16],"econ"],
 ["jagged","Jagged frontier","Jagged frontier","AI's abilities are uneven: superhuman on one task and surprisingly poor on a similar-looking one.",[12,13,15],"labor"],
 ["jevons","Jevons paradox","Jevons paradox","Making something cheaper to use can raise total use, as more efficient steam engines led Britain to burn more coal (1865).",[16],"econ"],
@@ -320,11 +320,11 @@ const TERMS_RAW = [
 ["nn","Neural network","Neural network","Layers of simple connected units whose connection strengths (weights) are learned from data.",[1,2],"optim"],
 ["orphan","Orphan & forgotten diseases","Orphan and forgotten diseases","Diseases that affect few people, or many people with little purchasing power. Under-researched because drug development doesn't pay off.",[18],"health"],
 ["overfit","Overfitting","Overfitting","Memorizing the noise in the training data instead of the real pattern, like cramming for the wrong exam.",[2,4],"optim"],
-["predjudge","Prediction vs. judgment","Prediction vs. judgment","A decision combines prediction (what's likely) with judgment (how much each outcome matters). Cheap AI prediction raises the value of judgment.",[1,12,13,17],"decision"],
+["predjudge","Prediction vs. judgment","Prediction vs. judgment","A decision combines prediction (what's likely) with judgment (how much each outcome matters). Cheap AI prediction raises the value of judgment.",[1,12,13,17,20],"decision"],
 ["pretrain","Pre-training","Pre-training (base model)","The first, very expensive training stage, where a model learns to predict the next word from a huge body of text.",[3,4],"learning"],
 ["prodfn","Production function","Production function","The relationship between inputs, labor (L) and capital (K), and the most output they can produce: Y = f(L, K).",[14,15,16],"econ"],
 ["prompt","Prompt engineering","Prompt engineering","Crafting inputs to get the output you want: be specific, add context, give examples, assign a persona, specify the format.",[4,7,8],"data"],
-["rct","RCT","Randomized controlled trial (RCT)","Randomly assigning people to treatment or control so differences in outcomes can be attributed to the treatment.",[8,14],"methods"],
+["rct","RCT","Randomized controlled trial (RCT)","Randomly assigning people to treatment or control so differences in outcomes can be attributed to the treatment.",[8,14,20],"methods"],
 ["reasoning","Reasoning model","Reasoning model","An LLM trained with RL on checkable problems to 'think' before answering: long chain of thought, checking its work and backtracking.",[4,9,11],"reasoning"],
 ["rsi","Recursive self-improvement","Recursive self-improvement","AI getting better by training on its own output, without humans. Works in closed sandboxes with an automatic referee.",[10,11],"agents"],
 ["rl","Reinforcement learning","Reinforcement learning (RL)","Trial-and-error learning: actions earn rewards or penalties, and the agent learns which actions pay off, like the brain's dopamine signal.",[3,4,9],"learning"],
@@ -343,7 +343,7 @@ const TERMS_RAW = [
 ["synthetic","Synthetic data","Synthetic data","Data generated by AI to train other AI. Works well where rules are clear, as in games.",[3,4],"data"],
 ["system12","System 1 vs. System 2","System 1 vs. System 2","Fast, intuitive thinking vs. slow, deliberate thinking (Kahneman). A standard LLM's one-pass prediction is System 1.",[4,5,9,11],"reasoning"],
 ["sysrisk","Systemic risk","Systematic (system-wide) risk","The risk that the whole financial system fails at once, as in 2007–08.",[17],"finance"],
-["taskfw","Task framework","Task framework","Jobs are bundles of tasks. AI displaces tasks, raises productivity and creates new tasks, so the net effect is ambiguous.",[15,16],"econ"],
+["taskfw","Task framework","Task framework","Jobs are bundles of tasks. AI displaces tasks, raises productivity and creates new tasks, so the net effect is ambiguous.",[15,16,20,21],"econ"],
 ["taskfirm","Task- vs. firm-level effects","Task-level vs. firm-level effects","A task done 40% faster doesn't mean a firm needs 40% fewer workers: firms can expand output, hit bottlenecks, reorganize or cut prices.",[14,15],"labor"],
 ["temp","Temperature","Temperature","A setting for how random a model's word choices are: low gives predictable answers, high gives varied and error-prone ones.",[4,8],"language"],
 ["td","Temporal-difference learning","Temporal-difference learning","Reinforcement learning that updates its prediction of the final outcome at every step, like realizing you lost your queen early.",[9],"learning"],
@@ -354,11 +354,22 @@ const TERMS_RAW = [
 ["type12","Type I vs. Type II errors","Type I and Type II errors","A false positive (flagging a legitimate transaction as fraud) vs. a false negative (missing real fraud).",[17],"finance"],
 ["unsup","Unsupervised learning","Unsupervised learning","Finding structure in data with no labels, e.g. clustering customers by spending patterns.",[2],"learning"],
 ["valuefn","Value function","Value (objective) function","The goal an optimizer is maximizing, e.g. an AI company's profit, engagement and avoiding lawsuits.",[1,6,7],"companions"],
-["embed","Word embeddings","Word embeddings","Words as long lists of numbers placed so similar words sit close together: king − man + woman ≈ queen.",[5,6],"language"]
+["embed","Word embeddings","Word embeddings","Words as long lists of numbers placed so similar words sit close together: king − man + woman ≈ queen.",[5,6],"language"],
+["induction","Induction","Induction","Drawing general conclusions from specific observations, like concluding all swans are white after seeing 100 white swans. Supervised learning is fundamentally inductive.",[20,21],"logic"],
+["deduction","Deduction","Deduction","Deriving conclusions logically from general premises: all humans are mortal, Socrates is human, so Socrates is mortal.",[21],"logic"],
+["expertsys","Expert systems","Expert systems (rule-based AI)","Symbolic AI that applies hand-coded rules with formal logic, e.g. tax-law decision trees. Popular in the 1980s; needs complete, correct rules.",[21],"logic"],
+["lawsys","Case law vs. civil law","Case (common) law vs. civil (codified) law","Precedent-based systems like the U.S. and UK, which fit induction-based AI, vs. written-code systems like France and Germany, which fit rule-based reasoning.",[21],"logic"],
+["personhood","AI legal personhood","AI legal personhood","Granting AI a bundle of rights and duties (own property, sign contracts, sue and be sued), as corporations and some rivers have. Raises the question of who is accountable.",[21],"logic"],
+["imitation","Imitation learning","Imitation learning","Learning by copying expert demonstrations, like ALVINN (1989) learning to steer from human driving: 'if you see this image, steer left'.",[21],"drive"],
+["cascade","Cascading errors","Cascading errors","A model trained only on expert behavior never learns to recover once it is off track, so small mistakes compound.",[21],"drive"],
+["dagger","DAgger","DAgger (dataset aggregation)","Interactive training where humans show the model how to recover in error-prone states. A little targeted data gives large improvements.",[21],"drive"],
+["secondbest","Theory of the second best","Theory of the second best","When the optimal strategy can't be fully carried out (e.g. a human can't finish the AI's maneuver), a less 'optimal' plan can be better. A rationale for human oversight.",[21],"drive"],
+["simrl","Learning in simulation","Learning from own experience (simulation RL)","After imitation reaches a threshold, the model trains by reinforcement learning in simulation, creating its own data and practicing rare dangerous scenarios.",[21],"drive"],
+["aitutor","Course AI tutor","AI tutor","An AI built to help students learn. Designed tutors that guide rather than answer can help; unrestricted answer-giving can substitute for learning effort.",[19,20],"edu"]
 ];
 
 // Made-up terms used as "hallucinated" trap balloons.
-const FAKE_TERMS = ["Backward attention descent","Stochastic isoquant","Recursive Jevons loop","Token elasticity theorem","Deep marginal embedding","Sycophantic overfitting","Neural consumer surplus","Bayesian gradient hacking","Generative isoquant network","Prompt inflation","Reverse Mixture of Experts","Kurzweil's diminishing loop","Supervised sentience","Adversarial Bloom index"];
+const FAKE_TERMS = ["Backward attention descent","Stochastic isoquant","Recursive Jevons loop","Token elasticity theorem","Deep marginal embedding","Sycophantic overfitting","Neural consumer surplus","Bayesian gradient hacking","Generative isoquant network","Prompt inflation","Reverse Mixture of Experts","Kurzweil's diminishing loop","Supervised sentience","Adversarial Bloom index","Deductive overfitting","Precedent embedding loop","Second-best gradient"];
 
 // SCENARIOS: [term id, scenario, level 2=Apply 3=Analyze]
 const SCEN_RAW = [
@@ -450,7 +461,25 @@ const SCEN_RAW = [
 ["agi","An AI that could do almost every intellectual task a human can, across fields.",2],
 ["prompt","You add 'act as an econ TA, give three examples, answer in a table' to your request.",2],
 ["constopt","Maximize your happiness at lunch subject to having only $6.",2],
-["rct","Half the participants are randomly given ChatGPT and half are not; then writing quality is compared.",2]
+["rct","Half the participants are randomly given ChatGPT and half are not; then writing quality is compared.",2],
+["induction","After seeing 100 white swans, you conclude that all swans are white.",2],
+["deduction","All humans are mortal. Socrates is human. Therefore Socrates is mortal.",2],
+["expertsys","A 1980s tax program applies hand-coded if-then rules to decide who qualifies for a deduction.",2],
+["lawsys","A legal AI matches a new case's facts to patterns in thousands of past rulings, a natural fit for the U.S. system.",3],
+["personhood","Argentina debates letting AI run 'non-human corporations' that can own property and be sued.",3],
+["imitation","A neural net watches human drivers and learns: when the road looks like this, steer left.",2],
+["cascade","A self-driving model drifts slightly out of its lane and, never having seen that situation, drifts even further.",2],
+["dagger","When the car gets into trouble, a human shows it how to recover, and those targeted examples are added to training.",3],
+["secondbest","Engineers pick a slightly slower route that the backup driver could actually handle if they had to take over.",3],
+["simrl","After learning from humans, the driving model practices millions of miles a day in a simulator, generating its own data.",3],
+["aitutor","A middle-school math program adds a chatbot that guides students with questions but won't hand out answers.",2],
+["offload","Students given a course AI tutor ask it for direct answers 74% of the time, and their final grades fall.",3,[20]],
+["halluc","A legal research tool built on a curated case database still cites a precedent that doesn't exist.",2,[20]],
+["predjudge","Lex Machina forecasts how a judge is likely to rule; the lawyer still decides which strategy to pursue.",3,[20]],
+["taskfw","Robotaxis take over the driving, and drivers have few other tasks left in their jobs.",3,[21]],
+["sysrisk","If every self-driving car runs the same model, one bug or hack could cause crashes everywhere at once.",3,[21]],
+["induction","A tool predicts whether a defendant will reoffend based on patterns in past cases.",3],
+["deduction","A compliance checker applies a statute's written rules to decide whether a contract is allowed.",3]
 ];
 
 // TRUTHS: [three claims, index of the hallucination, explanation, lectures]
@@ -486,7 +515,22 @@ const TRUTHS = [
 [["Packers and robots have a straight-line isoquant (substitutes).","Pilots and planes have an L-shaped isoquant (complements).","An L-shaped isoquant means labor and capital are perfect substitutes."],2,"L-shaped means perfect complements; straight lines mean substitutes.",[15,16]],
 [["'Always invite AI to the table' is one of Mollick's principles.","'Be the human in the loop' is one of Mollick's principles.","'Never treat AI like a person' is one of Mollick's principles."],2,"Mollick's third principle is the opposite: 'Treat AI like a person' (with trade-offs).",[13,14]],
 [["A task done 40% faster doesn't imply 40% fewer workers.","Evidence for task-level gains is strong; firm-level evidence is thinner.","Firm-level effects are easy to randomize, so they are the best-studied."],2,"Firms are hard to randomize, which is why firm- and economy-wide evidence is much thinner.",[14,15,16]],
-[["Temperature controls how random a model's word choices are.","Low temperature gives more predictable answers.","High temperature makes answers more accurate."],2,"High temperature makes answers more varied and creative, but also more error-prone.",[4,8]]
+[["Temperature controls how random a model's word choices are.","Low temperature gives more predictable answers.","High temperature makes answers more accurate."],2,"High temperature makes answers more varied and creative, but also more error-prone.",[4,8]],
+[["In the Maryland RCT, students with a course AI tutor got lower final grades.","About 74% of requests to the tutor asked for direct answers.","First-generation students benefited most from the AI tutor."],2,"First-generation students lost the most: about −5.1 points (−0.5 sd).",[20]],
+[["Khanmigo guides students but doesn't hand out answers.","Its pooled effect on math scores was small, about +0.04 sd.","Students used the tutor in most of their exercise sessions."],2,"The median student used it in only 14% of sessions: 'the binding constraint appears to be engagement'.",[20]],
+[["Lawyers in Mata v. Avianca were sanctioned for citing fake ChatGPT cases.","Legal-specific AI research tools still hallucinate on 17–33% of queries.","Legal AI tools built on curated case databases no longer hallucinate."],2,"Magesh et al. found Lexis+ AI, Westlaw AI and Practical Law AI all still hallucinate.",[20,21]],
+[["An ML bail algorithm could cut jail populations ~42% with no rise in crime.","Alternatively, crime could fall ~25% with the same number of people jailed.","The algorithm raised the share of Black and Hispanic inmates."],2,"Kleinberg et al. found the share of Black and Hispanic inmates would fall.",[20,21]],
+[["Induction draws general conclusions from specific observations.","Supervised learning is fundamentally inductive.","Hume showed that induction is logically guaranteed to be correct."],2,"Hume argued there is no rational justification for assuming the future resembles the past; induction rests on habit.",[21]],
+[["Deduction derives conclusions from general premises.","1980s expert systems were deductive, rule-based AI.","Deduction is the main way to create new knowledge from data."],2,"Deduction can't create new knowledge; it relies on existing premises.",[21]],
+[["Common-law systems like the U.S. rely on precedent.","Civil-law systems like France and Germany rely on written codes.","Case law fits rule-based AI better than induction-based AI."],2,"Case law, built on patterns in prior rulings, fits induction-based AI.",[21]],
+[["Corporations already have legal personhood.","A river in New Zealand has been granted legal personhood.","Idaho and Utah have declared that AI is a legal person."],2,"Idaho and Utah declared that AI is NOT a legal person.",[21]],
+[["The Stanford Cart (1979) moved at about 0.004 mph.","ALVINN (1989) used a neural net to learn steering by imitation.","In the 2004 DARPA Grand Challenge, five cars finished the desert course."],2,"No car finished in 2004; five finished in 2005.",[21]],
+[["Imitation learning from expert drivers rarely sees how to recover from mistakes.","Once off track, an imitation model may not know how to get back.","The fix is to have the car deliberately drive off-road during training."],2,"That would train it to drive off-road. Instead: corrupted images with correct labels, or human recovery demos (DAgger).",[21]],
+[["Waymo drives millions of simulated miles every day.","Simulation lets it practice rare, dangerous scenarios.","Waymo's 82% fewer injury crashes comes from an independent RCT."],2,"It comes from company data, which is a reason to update cautiously.",[21]],
+[["An AI may pick a path too precise for a human to finish if they take over.","Under the theory of the second best, the 'optimal' strategy isn't always better.","Human oversight only helps if humans and AI share the same blind spots."],2,"Oversight helps most when humans have DIFFERENT blind spots from the AI.",[21]],
+[["China uses AI in lower-level cases to evaluate evidence and draft verdicts.","Lex Machina predicts the behavior of courts and judges.","Legal prediction tools have fully replaced lawyers' judgment."],2,"They are prediction tools; judgment is still left to humans.",[20]],
+[["About 11 million U.S. workers are in transportation-related occupations.","That's roughly 7% of U.S. employment.","Almost all of them work in the transportation & warehousing industry."],2,"Only 4.1 million do; 6.9 million work in other industries, e.g. delivery drivers in retail.",[21]],
+[["More self-driving cars make traffic more predictable.","More self-driving cars can raise systemic risk, e.g. from hacking.","Safety depends only on each car's own model, not on the mix of cars on the road."],2,"Safety is an equilibrium outcome that depends on how many cars are self-driving and how they interact.",[21]]
 ];
 
 // STATS: [question, answer, min, max, step, unit, lectures, note]
@@ -512,10 +556,27 @@ const STATS = [
 ["Student conversations analyzed in Anthropic's education report",575000,0,1000000,5000,"",[19],"Collected over 18 days from university email accounts."],
 ["Share of 'direct' student conversations (answer with minimal engagement)",47,0,100,1,"%",[19],"Who is doing the thinking?"],
 ["GPT-4's reported (unconfirmed, 2023 leak) number of weights, in trillions",1.7,0,10,0.1,"T",[3],"Moved with stochastic gradient descent and backpropagation."],
-["Freelancers in Hui, Reshef & Zhou's data",92547,0,200000,500,"",[17],"Difference-in-differences: more vs. less affected occupations."],
+["Freelancers in Hui, Reshef & Zhou's data",92547,0,200000,1,"",[17],"Difference-in-differences: more vs. less affected occupations."],
 ["How many experts the MoE gate consults, out of 256",8,0,64,1,"",[6],"That's why inference is so much cheaper."],
 ["GPT-4 on the Alternative Uses Test: share of humans it outperformed",99,0,100,1,"%",[8],"As judged by other humans (Guzik, Byrge & Gajda)."],
-["Days of student conversations in Anthropic's data",18,0,90,1,"",[19],"A descriptive snapshot of early adopters."]
+["Days of student conversations in Anthropic's data",18,0,90,1,"",[19],"A descriptive snapshot of early adopters."],
+["Maryland AI tutor RCT: effect on final grades, in standard deviations",-0.37,-1,1,0.01," sd",[20],"About −4.1 points; course participation fell about 0.9 sd."],
+["Maryland AI tutor: share of requests asking for a direct answer",74,0,100,1,"%",[20],"Under 1% asked for feedback on their own attempt."],
+["Students in the Maryland AI tutor RCT (Liu et al.)",2379,0,10000,1,"",[20],"30 instructors, 34 sections, Fall 2025."],
+["Khanmigo: pooled effect on middle-school math scores, in standard deviations",0.04,-0.5,0.5,0.01," sd",[20],"Year 1 +0.02 (not significant), Year 2 +0.08."],
+["Khanmigo: cost per student per year",15,0,200,1,"$",[20],"Cheap, but engagement was the binding constraint."],
+["Khanmigo: share of exercise sessions where the median student used the tutor",14,0,100,1,"%",[20],"96% messaged it at least once, but rarely."],
+["Westlaw AI: share of legal research queries with a hallucination (Magesh et al.)",33,0,100,1,"%",[20,21],"Lexis+ AI: 17%. Legal-specific tools still hallucinate."],
+["U.S. court filings with AI-fabricated content (as of June 2026)",1060,0,5000,10,"",[20,21],"About 60% from self-represented litigants, 40% from attorneys."],
+["Sanction in Mata v. Avianca (2023) for citing fake ChatGPT cases",5000,0,50000,500,"$",[20],"A famous early AI hallucination case."],
+["Kleinberg et al.: possible cut in jail population with no rise in crime",42,0,100,1,"%",[20,21],"Or crime could fall 24.7% with the same jail population."],
+["Harvey (legal AI) valuation, in billions of dollars",11,0,50,1,"$B",[20],"Every responding firm with 500+ attorneys uses legal AI (Bloomberg Law 2026)."],
+["BCG outside the frontier: share correct WITHOUT AI",84.5,0,100,0.5,"%",[15,20],"With AI: 60–71%, about 19 pp lower."],
+["BCG inside the frontier: quality gain for the bottom half of consultants",43,0,100,1,"%",[15,20],"Top half: +17%. AI lifts the left tail."],
+["U.S. workers in transportation-related occupations (2024), in millions",11,0,40,0.1,"M",[21],"About 7% of employment."],
+["The year ALVINN learned to steer with a neural net by imitation",1989,1950,2020,1,"",[21],"It could steer, not drive, on the highway."],
+["Waymo: reduction in injury crashes vs. human drivers (company data)",82,0,100,1,"%",[21],"Company data, so update cautiously."],
+["Waymo paid rides per week in 2026",500000,0,2000000,10000,"",[21],"Plus 270M+ autonomous miles."]
 ];
 
 // STUDIES (Memory Match): [who, finding, lectures]
@@ -541,7 +602,17 @@ const STUDIES = [
 ["Bai et al. (2022)","Constitutional AI",[14]],
 ["OpenAI, April 2025","Rolled back a sycophantic GPT-4o update",[14]],
 ["Rosenblatt","The one-layer Perceptron",[1,2]],
-["Andrew Ng","Anything you can do with 1 second of thought can be automated",[4]]
+["Andrew Ng","Anything you can do with 1 second of thought can be automated",[4]],
+["Liu et al. (2026)","Course AI tutor lowered final grades (−0.37 sd)",[20]],
+["Oreopoulos & Low (2026)","Khanmigo: small math gains (+0.04 sd)",[20]],
+["Magesh et al. (2025)","Legal AI tools hallucinate on 17–33% of queries",[20,21]],
+["Kleinberg et al. (2018)","ML bail decisions: jail −42%, no rise in crime",[20,21]],
+["Mata v. Avianca (2023)","Lawyers fined $5,000 for fake ChatGPT cases",[20]],
+["ALVINN (1989)","Neural net learns to steer by imitation",[21]],
+["Hume","No logical guarantee the future resembles the past",[21]],
+["DARPA Grand Challenge 2005","Five self-driving cars finish the desert course",[21]],
+["Waymo (2026)","82% fewer injury crashes (company data)",[21]],
+["Harari","You cannot jail an AI: who is accountable?",[21]]
 ];
 
 // BUCKET SETS: {t title, L lectures, b buckets, i: [text, bucket index]}
@@ -559,15 +630,18 @@ const BUCKETS = [
 {id:"creat",t:"Which type of creativity?",L:[7,8],b:["Domain-specific","Interdisciplinary","Radical"],i:[["A new Impressionist-style painting",0],["Wright brothers: bicycles + bird flight",1],["The printing press",2],["A new bebop jazz tune",0],["Velcro, inspired by burrs on a dog",1],["The internet",2],["A new sushi roll",0],["Game engines repurposed for climate simulation",1],["Writing itself",2]]},
 {id:"task",t:"Task framework: which effect?",L:[15,16],b:["Displacement","Productivity","New tasks"],i:[["AI writes the ad copy copywriters used to write",0],["Cheaper legal research lowers prices; clients bring more cases",1],["Firms hire AI trainers and evaluators",2],["Robots take over packing",0],["Faster coding lets a startup ship more products and hire",1],["AI auditors check models for bias",2],["Chatbots answer routine customer questions",0],["Translation demand surges as prices fall",1],["Human reviewers check AI-written medical notes",2]]},
 {id:"truth",t:"What went wrong?",L:[4,10,11,12,13],b:["Hallucination","Sycophancy","Reward hacking"],i:[["Invents a court case",0],["Agrees your shaky business plan is brilliant",1],["Agent reads the grading code to pass the tests",2],["Made-up statistic with a fake source",0],["Drops its correct answer when you push back",1],["Evolved robots dash to one corner instead of finding the light",2],["Confident but wrong birthday for a minor celebrity",0],["Calls your rough draft 'publication-ready'",1],["Game AI exploits a scoring bug instead of finishing the race",2]]},
-{id:"rules",t:"Which decision rule?",L:[12,13],b:["Expected value","Maximin","Maximax","Minimax regret"],i:[["Best probability-weighted average payoff",0],["Best worst case (pessimist)",1],["Best best case (optimist)",2],["Smallest maximum regret",3],["Buying lottery tickets for the jackpot",2],["Pick the job whose worst year is least bad",1],["Insurer pricing on average losses",0],["Avoid the choice you'd regret most",3]]}
+{id:"rules",t:"Which decision rule?",L:[12,13],b:["Expected value","Maximin","Maximax","Minimax regret"],i:[["Best probability-weighted average payoff",0],["Best worst case (pessimist)",1],["Best best case (optimist)",2],["Smallest maximum regret",3],["Buying lottery tickets for the jackpot",2],["Pick the job whose worst year is least bad",1],["Insurer pricing on average losses",0],["Avoid the choice you'd regret most",3]]},
+{id:"logic",t:"Induction or deduction?",L:[20,21],b:["Induction","Deduction"],i:[["100 white swans, so all swans are white",0],["All humans are mortal; Socrates is human",1],["Predicting case outcomes from past rulings",0],["Tax-law decision tree",1],["Predicting reoffending from past data",0],["Compliance check against formal legal rules",1],["Supervised learning",0],["1980s expert systems",1],["Generating a hypothesis from observations",0],["Testing a specific model with an experiment",1]]},
+{id:"lawsys",t:"Case law or civil law?",L:[21],b:["Case (common) law","Civil (codified) law"],i:[["United States",0],["France",1],["United Kingdom",0],["Germany",1],["Built on judicial precedent",0],["Built on written statutes and codes",1],["Analogical reasoning across cases",0],["Applying a rule to a case (rule → case)",1],["Natural fit for induction-based AI",0],["Natural fit for rule-based tools",1]]},
+{id:"tutor",t:"Does AI complement or substitute for learning?",L:[19,20],b:["Complements learning","Substitutes for learning"],i:[["Khanmigo guides without giving answers",0],["Asking the course tutor for the final answer",1],["Structured practice with hints",0],["Submitting ChatGPT's essay unedited",1],["Asking for feedback on your own attempt",0],["Skipping office hours because the bot answers",1],["A tutor that quizzes you on course material",0],["Writing with ChatGPT and not remembering a sentence",1]]},
+{id:"drive",t:"How is the car learning?",L:[21],b:["Imitation","Learning to recover","Own experience (simulation)"],i:[["Copying human steering, like ALVINN",0],["A human shows how to recover when off track",1],["Millions of simulated miles a day",2],["'If you see this image, steer left'",0],["Tilted images labeled with the correct correction",1],["Practicing rare dangerous scenarios virtually",2],["Human and AI steer in parallel",1],["Training only on skillful expert driving",0],["Surpassing the quality of human training data",2]]}
 ];
-
 const UNITS = [
 {id:1,name:"The Server Farm",sub:"How AI works",from:1,to:6,quiz:"Quiz 1 · L1–6",color:"var(--sky)",icon:"server"},
 {id:2,name:"The Philosophy Hall",sub:"Minds, creativity, truth & decisions",from:7,to:14,quiz:"Quiz 2 · L7–14",color:"var(--trap)",icon:"column"},
-{id:3,name:"The Market Square",sub:"AI in the economy",from:14,to:19,quiz:"Final · L14–19",color:"var(--mint)",icon:"stall"}
+{id:3,name:"The Market Square",sub:"AI in the economy, law & transport",from:14,to:21,quiz:"Final · L14–21",color:"var(--mint)",icon:"stall"}
 ];
-const LECTURES = {1:"Introduction",2:"Machine learning",3:"LLMs",4:"Prompting & data",5:"Language",6:"Companionship",7:"Creativity",8:"Consumer behavior",9:"Sentience & reasoning",10:"Agentic AI",11:"Truth",12:"Decision making",13:"AI at work",14:"Productivity",15:"Productivity II",16:"Employment",17:"Finance",18:"Health",19:"Education"};
+const LECTURES = {1:"Introduction",2:"Machine learning",3:"LLMs",4:"Prompting & data",5:"Language",6:"Companionship",7:"Creativity",8:"Consumer behavior",9:"Sentience & reasoning",10:"Agentic AI",11:"Truth",12:"Decision making",13:"AI at work",14:"Productivity",15:"Productivity II",16:"Employment",17:"Finance",18:"Health",19:"Education",20:"Education & law",21:"Transportation"};
 // ===== ART: Gradient the goat, shop icons, dorm room =====
 function goatSVG(eq, vb){
   eq = eq || {};
@@ -649,6 +723,8 @@ const ICONS = {
   cert:`<rect x="0" y="6" width="56" height="44" fill="#7a5230"/><rect x="4" y="10" width="48" height="36" fill="#FFF8E6"/><text x="28" y="22" text-anchor="middle" font-size="6" font-family="Bungee,Arial Black,sans-serif" fill="#333">TURING TEST</text><text x="28" y="31" text-anchor="middle" font-size="6" font-family="serif" fill="#333">passed*</text><text x="28" y="41" text-anchor="middle" font-size="4" font-family="sans-serif" fill="#777">*probably</text><circle cx="44" cy="40" r="4" fill="#E8503F"/>`,
   sticker:`<circle cx="28" cy="28" r="22" fill="#E8503F" stroke="#fff" stroke-width="3"/><text x="28" y="27" text-anchor="middle" font-size="7.5" font-family="Bungee,Arial Black,sans-serif" fill="#fff">HUMAN</text><text x="28" y="36" text-anchor="middle" font-size="7.5" font-family="Bungee,Arial Black,sans-serif" fill="#fff">MADE</text>`,
   lights:`<path d="M2 14 Q14 26 28 14 Q42 26 54 14" stroke="#555" stroke-width="1.5" fill="none"/><circle cx="10" cy="20" r="4" fill="#FFE04A"/><circle cx="22" cy="21" r="4" fill="#E8503F"/><circle cx="34" cy="21" r="4" fill="#16996C"/><circle cx="46" cy="20" r="4" fill="#2F6FD6"/>`,
+  robotaxi:`<rect x="4" y="26" width="48" height="20" rx="6" fill="#F6F3EE" stroke="#8A94A3" stroke-width="2"/><path d="M14 26 L20 14 H38 L44 26Z" fill="#BFD7F0" stroke="#8A94A3" stroke-width="2"/><rect x="22" y="6" width="12" height="8" rx="3" fill="#2F6FD6"/><circle cx="16" cy="48" r="6" fill="#2a2a33"/><circle cx="40" cy="48" r="6" fill="#2a2a33"/><circle cx="6" cy="34" r="2" fill="#FFE04A"/>`,
+  gavel:`<rect x="6" y="48" width="44" height="8" rx="2" fill="#6B4A2E"/><rect x="10" y="10" width="26" height="14" rx="4" fill="#8B5E3C" transform="rotate(-30 23 17)"/><rect x="24" y="20" width="6" height="30" rx="3" fill="#A9784F" transform="rotate(-30 27 35)"/>`,
   ctx:`<rect x="4" y="12" width="48" height="36" rx="4" fill="#18233F"/><rect x="9" y="17" width="10" height="26" fill="#FFE04A"/><rect x="21" y="17" width="10" height="26" fill="#FFE04A"/><rect x="33" y="17" width="10" height="26" fill="#FFE04A" opacity=".5"/><text x="28" y="56" text-anchor="middle" font-size="7" font-family="monospace" fill="#555">+1 HINT</text>`,
   centaur:`<rect x="10" y="4" width="36" height="50" rx="5" fill="#fff" stroke="#18233F" stroke-width="2"/><text x="28" y="26" text-anchor="middle" font-size="12" font-family="Bungee,Arial Black,sans-serif" fill="#18233F">50</text><text x="28" y="40" text-anchor="middle" font-size="12" font-family="Bungee,Arial Black,sans-serif" fill="#E8503F">50</text>`
 };
@@ -751,6 +827,8 @@ const ITEMS = [
  {id:"cert",n:"Turing test certificate",cat:"jokes",p:60,kind:"room",zone:"wall2",icon:"cert",d:"Passed.* (*probably)"},
  {id:"sticker",n:"'Human-made' sticker",cat:"jokes",p:30,kind:"room",zone:"sticker",icon:"sticker",d:"Premium market segment."},
  {id:"alphafold",n:"AlphaFold protein sculpture",cat:"jokes",p:150,kind:"room",zone:"small",icon:"alphafold",d:"We know its shape. Not why."},
+ {id:"robotaxi",n:"Toy robotaxi",cat:"jokes",p:45,kind:"room",zone:"small",icon:"robotaxi",d:"Learned to drive by imitation, then 270 million simulated miles."},
+ {id:"gavel",n:"Gavel for a non-human corporation",cat:"jokes",p:35,kind:"room",zone:"small",icon:"gavel",d:"Who do you sue when the AI runs the company?"},
  {id:"gpu",n:"GPU",cat:"jokes",p:200,kind:"room",zone:"small",icon:"gpu",stack:true,d:"Price rises 25% with every purchase. Supply is tight."},
  // Power-ups
  {id:"ctx",n:"Bigger context window",cat:"power",p:40,kind:"power",icon:"ctx",d:"+1 hint in every round. Buy twice for +2."},
@@ -767,16 +845,22 @@ const CATS = [["wear","Wear"],["retro","Retro tech"],["dorm","Dorm & study"],["j
 // ===== STATE =====
 const KEY = "gradientDescent_v1";
 const LV = {rem:{n:"Remember",tag:"Definitions & facts",a:2,b:1},app:{n:"Apply",tag:"New examples",a:4,b:2},ana:{n:"Analyze",tag:"Quiz-style",a:6,b:3}};
-const ALL_L = Array.from({length:19},(_,i)=>i+1);
+const ALL_L = Array.from({length:21},(_,i)=>i+1);
+const MAX_L = 21;
 function fresh(){ return {tokens:15,owned:{},equip:{head:null,face:null,ears:null,neck:null,body:null},hidden:{},place:"quad",items:{},lects:ALL_L.slice(),sound:true,feed:{day:"",n:0},saveFor:null,ctx:0,centaur:0,stacks:{coal:0,gpu:0,clips:0},last:[],badges:{},level:"rem",sel:{},rounds:0}; }
 let S = fresh();
 try{ const raw = localStorage.getItem(KEY); if(raw){ S = Object.assign(fresh(), JSON.parse(raw)); } }catch(e){}
+// New lectures added since this browser last played: switch them on.
+(function(){ const known=S.maxL||19; if(known<MAX_L){ const add=[]; for(let l=known+1;l<=MAX_L;l++) add.push(l);
+  S.lects=[...new Set([...(S.lects||[]),...add])].sort((a,b)=>a-b);
+  Object.keys(S.sel||{}).forEach(k=>{ const u=UNITS.find(x=>"u"+x.id===k); if(u) S.sel[k]=[...new Set([...S.sel[k],...add.filter(l=>l>=u.from&&l<=u.to)])]; });
+  S.maxL=MAX_L; S.newL=add; } })();
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
 
 // ===== DERIVED CONTENT =====
 const TERMS = TERMS_RAW.map(r=>({id:r[0],n:r[1],full:r[2],d:r[3],L:r[4],g:r[5],key:"t:"+r[0]}));
 const TERM = Object.fromEntries(TERMS.map(t=>[t.id,t]));
-const SCEN = SCEN_RAW.map((r,i)=>({tid:r[0],text:r[1],lvl:r[2],L:TERM[r[0]].L,key:"s:"+i}));
+const SCEN = SCEN_RAW.map((r,i)=>({tid:r[0],text:r[1],lvl:r[2],L:r[3]||TERM[r[0]].L,key:"s:"+i}));
 const TRU = TRUTHS.map((r,i)=>({c:r[0],f:r[1],why:r[2],L:r[3],key:"h:"+i}));
 const STA = STATS.map((r,i)=>({q:r[0],a:r[1],min:r[2],max:r[3],step:r[4],u:r[5],L:r[6],note:r[7],key:"n:"+i}));
 const STU = STUDIES.map((r,i)=>({who:r[0],f:r[1],L:r[2],key:"y:"+i}));
@@ -1195,7 +1279,7 @@ function gameTruth(){
 }
 
 // ===== GAME: GUESS THE STAT =====
-function fmtNum(v,it){ const dec=it.step<1?(String(it.step).split(".")[1]||"").length:0; let s=Number(v).toLocaleString("en-US",{minimumFractionDigits:dec,maximumFractionDigits:dec}); if(it.u==="%") s+="%"; else if(it.u==="×") s+="×"; else if(it.u) s+=it.u; return s; }
+function fmtNum(v,it){ const dec=it.step<1?(String(it.step).split(".")[1]||"").length:0; const neg=Number(v)<0; let s=Math.abs(Number(v)).toLocaleString("en-US",{minimumFractionDigits:dec,maximumFractionDigits:dec}); if(it.u&&it.u[0]==="$") s="$"+s+it.u.slice(1); else if(it.u) s+=it.u; return (neg?"−":"")+s; }
 function gameStat(){
   const u=G.unit; const N=6;
   let qs=weightedPick(STA.filter(t=>inScope(t.L,u)),N);
@@ -1393,7 +1477,7 @@ function renderSettings(){
      <div class="soft" style="display:grid;gap:8px"><div class="eyebrow">Progress</div>
        <p class="muted" style="margin:0;font-size:14px">Saved in this browser only. Nothing is sent anywhere. ${S.rounds||0} rounds played.</p>
        <div><button class="btn sm" id="reset">${resetArm?"Tap again to erase everything":"Reset all progress"}</button></div></div>
-     <p class="muted" style="font-size:13px;margin:0">Questions are drawn from the Fall 2026 lecture slides (L1–L19) and the course glossary. If you spot an error, tell Professor Abel.</p>
+     <p class="muted" style="font-size:13px;margin:0">Questions are drawn from the Fall 2026 lecture slides (L1–L21) and the course glossary. If you spot an error, tell Professor Abel.</p>
    </div>`;
   $("#snd").onchange=e=>{S.sound=e.target.checked;save();};
   document.querySelectorAll("[data-sl]").forEach(c=>c.onchange=()=>{const l=+c.dataset.sl;S.lects=c.checked?[...new Set([...S.lects,l])].sort((a,b)=>a-b):S.lects.filter(x=>x!==l);if(!S.lects.length){S.lects=[l];c.checked=true;toast("Keep at least one lecture.");}save();});
@@ -1402,5 +1486,6 @@ function renderSettings(){
 
 renderTok();
 go("home");
+if(S.newL&&S.newL.length){ toast("New: Lectures "+S.newL.join(" & ")+" ("+S.newL.map(l=>LECTURES[l]).join(", ")+") are now in the Market Square.",5000); S.newL=null; save(); }
 </script>
 </body></html>
